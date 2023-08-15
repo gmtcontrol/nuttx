@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/arm/src/armv8-m/arm_saveusercontext.S
+ * arch/arm/src/ra6m5/ra6m5_mpuinit.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -23,91 +23,67 @@
  ****************************************************************************/
 
 #include <nuttx/config.h>
-#include <nuttx/irq.h>
 
-	.file	"arm_saveusercontext.S"
+#include <assert.h>
+#include <sys/param.h>
 
-	.text
-	.syntax	unified
-	.thumb
+#include <nuttx/userspace.h>
+
+#include "mpu.h"
+#include "ra6m5_mpuinit.h"
+
+#if defined(CONFIG_BUILD_PROTECTED) && defined(CONFIG_ARM_MPU)
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_saveusercontext
+ * Name: ra6m5_mpuinitialize
  *
  * Description:
- *   Save the current context.  Full prototype is:
- *
- *   int up_saveusercontext(void *saveregs);
- *
- *   R0 = saveregs = pinter saved array
- *
- * Returned Value:
- *   None
+ *   Configure the MPU to permit user-space access to only restricted SAM3U
+ *   resources.
  *
  ****************************************************************************/
 
-	.globl	up_saveusercontext
-	.globl	up_saveusercontext
-	.type	up_saveusercontext, %function
+void ra6m5_mpuinitialize(void)
+{
+  uintptr_t datastart = MIN(USERSPACE->us_datastart, USERSPACE->us_bssstart);
+  uintptr_t dataend   = MAX(USERSPACE->us_dataend,   USERSPACE->us_bssend);
 
-up_saveusercontext:
+  DEBUGASSERT(USERSPACE->us_textend >= USERSPACE->us_textstart &&
+              dataend >= datastart);
 
-	/* Save r0~r3, r12，r14, pc */
+  /* Show MPU information */
 
-	str		r0, [r0, #(4*REG_R0)]
-	str		r1, [r0, #(4*REG_R1)]
-	str		r2, [r0, #(4*REG_R2)]
-	str		r3, [r0, #(4*REG_R3)]
-	str		r12, [r0, #(4*REG_R12)]
-	str		r14, [r0, #(4*REG_R14)]
-	str		r14, [r0, #(4*REG_R15)]
+  mpu_showtype();
 
-	/* Save xpsr */
+  /* Configure user flash and SRAM space */
 
-	mrs		r1, XPSR
-	str		r1, [r0, #(4*REG_XPSR)]
+  mpu_user_flash(USERSPACE->us_textstart,
+                 USERSPACE->us_textend - USERSPACE->us_textstart);
 
-#ifdef CONFIG_ARCH_FPU
-	add		r1, r0, #(4*REG_S0)
-	vstmia		r1!, {s0-s15}
-	vmrs		r2, fpscr
-	str		r2, [r1]
-#endif
+  mpu_user_intsram(datastart, dataend - datastart);
 
-	/* Save r13, primask, r4~r11 */
+  /* Then enable the MPU */
 
-	mov		r2, sp
-#ifdef CONFIG_ARMV8M_USEBASEPRI
-	mrs		r3, basepri
-#else
-	mrs		r3, primask
-#endif
-	stmia		r0!, {r2-r11}
+  mpu_control(true, false, true);
+}
 
-	/* Save EXC_RETURN to 0xffffffff */
+/****************************************************************************
+ * Name: ra6m5_mpu_uheap
+ *
+ * Description:
+ *  Map the user-heap region.
+ *
+ *  This logic may need an extension to handle external SDRAM).
+ *
+ ****************************************************************************/
 
-	mov		r1, #-1
-	stmia		r0!, {r1}
+void ra6m5_mpu_uheap(uintptr_t start, size_t size)
+{
+  mpu_user_intsram(start, size);
+}
 
-#ifdef CONFIG_ARCH_FPU
-	vstmia		r0!, {s16-s31}
-#endif
-
-#ifdef CONFIG_ARMV8M_STACKCHECK_HARDWARE
-	mrs		r2, control
-	tst		r2, #0x2
-	ite		eq
-	mrseq		r1, msplim
-	mrsne		r1, psplim
-	str		r1, [r0]
-#endif
-
-	mov		r0, #0
-	bx		lr
-
-	.size	up_saveusercontext, . - up_saveusercontext
-	.end
+#endif /* CONFIG_BUILD_PROTECTED && CONFIG_ARM_MPU */

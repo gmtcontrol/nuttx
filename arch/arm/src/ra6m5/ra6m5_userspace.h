@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/arm/src/armv8-m/arm_saveusercontext.S
+ * arch/arm/src/ra6m5/ra6m5_userspace.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,96 +18,32 @@
  *
  ****************************************************************************/
 
+#ifndef __ARCH_ARM_SRC_RA6M5_RA6M5_USERSPACE_H
+#define __ARCH_ARM_SRC_RA6M5_RA6M5_USERSPACE_H
+
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
-#include <nuttx/irq.h>
-
-	.file	"arm_saveusercontext.S"
-
-	.text
-	.syntax	unified
-	.thumb
 
 /****************************************************************************
- * Public Functions
+ * Public Function Prototypes
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_saveusercontext
+ * Name: ra6m5_userspace
  *
  * Description:
- *   Save the current context.  Full prototype is:
- *
- *   int up_saveusercontext(void *saveregs);
- *
- *   R0 = saveregs = pinter saved array
- *
- * Returned Value:
- *   None
+ *   For the case of the separate user-/kernel-space build, perform whatever
+ *   platform specific initialization of the user memory is required.
+ *   Normally this just means initializing the user space .data and .bss
+ *   segments.
  *
  ****************************************************************************/
 
-	.globl	up_saveusercontext
-	.globl	up_saveusercontext
-	.type	up_saveusercontext, %function
-
-up_saveusercontext:
-
-	/* Save r0~r3, r12，r14, pc */
-
-	str		r0, [r0, #(4*REG_R0)]
-	str		r1, [r0, #(4*REG_R1)]
-	str		r2, [r0, #(4*REG_R2)]
-	str		r3, [r0, #(4*REG_R3)]
-	str		r12, [r0, #(4*REG_R12)]
-	str		r14, [r0, #(4*REG_R14)]
-	str		r14, [r0, #(4*REG_R15)]
-
-	/* Save xpsr */
-
-	mrs		r1, XPSR
-	str		r1, [r0, #(4*REG_XPSR)]
-
-#ifdef CONFIG_ARCH_FPU
-	add		r1, r0, #(4*REG_S0)
-	vstmia		r1!, {s0-s15}
-	vmrs		r2, fpscr
-	str		r2, [r1]
+#ifdef CONFIG_BUILD_PROTECTED
+void ra6m5_userspace(void);
 #endif
 
-	/* Save r13, primask, r4~r11 */
-
-	mov		r2, sp
-#ifdef CONFIG_ARMV8M_USEBASEPRI
-	mrs		r3, basepri
-#else
-	mrs		r3, primask
-#endif
-	stmia		r0!, {r2-r11}
-
-	/* Save EXC_RETURN to 0xffffffff */
-
-	mov		r1, #-1
-	stmia		r0!, {r1}
-
-#ifdef CONFIG_ARCH_FPU
-	vstmia		r0!, {s16-s31}
-#endif
-
-#ifdef CONFIG_ARMV8M_STACKCHECK_HARDWARE
-	mrs		r2, control
-	tst		r2, #0x2
-	ite		eq
-	mrseq		r1, msplim
-	mrsne		r1, psplim
-	str		r1, [r0]
-#endif
-
-	mov		r0, #0
-	bx		lr
-
-	.size	up_saveusercontext, . - up_saveusercontext
-	.end
+#endif /* __ARCH_ARM_SRC_RA6M5_RA6M5_USERSPACE_H */

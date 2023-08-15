@@ -521,6 +521,24 @@ config ARCH_CHIP_STM32U5
 	---help---
 		STMicro STM32 U5 architectures (ARM Cortex-M33).
 
+config ARCH_CHIP_RA6M5
+	bool "Renesas RA6M5"
+	select ARCH_CORTEXM33
+	select ARCH_HAVE_MPU
+	select ARCH_HAVE_FETCHADD
+	select ARCH_HAVE_HEAPCHECK
+	select ARCH_HAVE_PROGMEM
+	select ARCH_HAVE_SPI_BITORDER
+	select ARCH_HAVE_TICKLESS
+	select ARCH_HAVE_TRUSTZONE
+	select ARMV8M_SYSTICK
+	select ARMV8M_TRUSTZONE_HYBRID
+	select ARMV8M_HAVE_STACKCHECK
+	select ARM_HAVE_DSP
+	select ARM_HAVE_MPU_UNIFIED
+	---help---
+		Renesas RA6M5 architectures (ARM Cortex-M33).
+		
 config ARCH_CHIP_STM32WB
 	bool "STMicro STM32 WB"
 	select ARCH_CORTEXM4
@@ -1015,6 +1033,7 @@ config ARCH_CHIP
 	default "cxd56xx"	if ARCH_CHIP_CXD56XX
 	default "phy62xx"	if ARCH_CHIP_PHY62XX
 	default "tlsr82"	if ARCH_CHIP_TLSR82
+	default "ra6m5"		if ARCH_CHIP_RA6M5
 
 config ARCH_HAVE_TRUSTZONE
 	bool
@@ -1469,6 +1488,9 @@ source "arch/arm/src/stm32l5/Kconfig"
 endif
 if ARCH_CHIP_STM32U5
 source "arch/arm/src/stm32u5/Kconfig"
+endif
+if ARCH_CHIP_RA6M5
+source "arch/arm/src/ra6m5/Kconfig"
 endif
 if ARCH_CHIP_STM32WB
 source "arch/arm/src/stm32wb/Kconfig"

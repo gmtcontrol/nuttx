@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/arm/src/armv8-m/arm_saveusercontext.S
+ * boards/arm/ra6m5/glc23x/src/ra6m5_appinit.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -23,91 +23,49 @@
  ****************************************************************************/
 
 #include <nuttx/config.h>
-#include <nuttx/irq.h>
 
-	.file	"arm_saveusercontext.S"
+#include <stdint.h>
 
-	.text
-	.syntax	unified
-	.thumb
+#include "glc23x.h"
+#include <nuttx/board.h>
+
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_saveusercontext
+ * Name: board_app_initialize
  *
  * Description:
- *   Save the current context.  Full prototype is:
+ *   Perform application specific initialization.  This function is never
+ *   called directly from application code, but only indirectly via the
+ *   (non-standard) boardctl() interface using the command BOARDIOC_INIT.
  *
- *   int up_saveusercontext(void *saveregs);
- *
- *   R0 = saveregs = pinter saved array
+ * Input Parameters:
+ *   arg - The boardctl() argument is passed to the board_app_initialize()
+ *         implementation without modification.  The argument has no
+ *         meaning to NuttX; the meaning of the argument is a contract
+ *         between the board-specific initialization logic and the
+ *         matching application logic.  The value cold be such things as a
+ *         mode enumeration value, a set of DIP switch switch settings, a
+ *         pointer to configuration data read from a file or serial FLASH,
+ *         or whatever you would like to do with it.  Every implementation
+ *         should accept zero/NULL as a default configuration.
  *
  * Returned Value:
- *   None
+ *   Zero (OK) is returned on success; a negated errno value is returned on
+ *   any failure to indicate the nature of the failure.
  *
  ****************************************************************************/
 
-	.globl	up_saveusercontext
-	.globl	up_saveusercontext
-	.type	up_saveusercontext, %function
+int board_app_initialize(uintptr_t arg)
+{
+  /* Did we already initialize via board_late_initialize()? */
 
-up_saveusercontext:
-
-	/* Save r0~r3, r12，r14, pc */
-
-	str		r0, [r0, #(4*REG_R0)]
-	str		r1, [r0, #(4*REG_R1)]
-	str		r2, [r0, #(4*REG_R2)]
-	str		r3, [r0, #(4*REG_R3)]
-	str		r12, [r0, #(4*REG_R12)]
-	str		r14, [r0, #(4*REG_R14)]
-	str		r14, [r0, #(4*REG_R15)]
-
-	/* Save xpsr */
-
-	mrs		r1, XPSR
-	str		r1, [r0, #(4*REG_XPSR)]
-
-#ifdef CONFIG_ARCH_FPU
-	add		r1, r0, #(4*REG_S0)
-	vstmia		r1!, {s0-s15}
-	vmrs		r2, fpscr
-	str		r2, [r1]
-#endif
-
-	/* Save r13, primask, r4~r11 */
-
-	mov		r2, sp
-#ifdef CONFIG_ARMV8M_USEBASEPRI
-	mrs		r3, basepri
+#ifndef CONFIG_BOARD_LATE_INITIALIZE
+  return ra6m5_bringup();
 #else
-	mrs		r3, primask
+  return OK;
 #endif
-	stmia		r0!, {r2-r11}
-
-	/* Save EXC_RETURN to 0xffffffff */
-
-	mov		r1, #-1
-	stmia		r0!, {r1}
-
-#ifdef CONFIG_ARCH_FPU
-	vstmia		r0!, {s16-s31}
-#endif
-
-#ifdef CONFIG_ARMV8M_STACKCHECK_HARDWARE
-	mrs		r2, control
-	tst		r2, #0x2
-	ite		eq
-	mrseq		r1, msplim
-	mrsne		r1, psplim
-	str		r1, [r0]
-#endif
-
-	mov		r0, #0
-	bx		lr
-
-	.size	up_saveusercontext, . - up_saveusercontext
-	.end
+}

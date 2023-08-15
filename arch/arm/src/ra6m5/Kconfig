@@ -1,0 +1,1369 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+if ARCH_CHIP_RA6M5
+
+comment "RA6M5 Configuration Options"
+
+choice
+	prompt "RA6M5 Chip Selection"
+	default ARCH_CHIP_R7FA6M5BH3CFP
+	depends on ARCH_CHIP_RA6M5
+
+config ARCH_CHIP_R7FA6M5BH3CFP
+	bool "R7FA6M5BH3CFP"
+	select RA6M5_R7FA6M5BX
+	select RA6M5_FLASH_CONFIG_H
+	select RA6M5_IO_CONFIG_FP
+	---help---
+		RA6M5 Cortex M33, 2048 Kb FLASH, 512 Kb SRAM
+
+endchoice # RA6M5 Chip Selection
+
+
+# Chip families:
+
+config RA6M5_R7FA6M5BX
+	bool
+	default n
+	select TIMER
+	select TIMER_ARCH
+	select ARCH_HAVE_FPU
+	select RA6M5_HAVE_ADC0
+	select RA6M5_HAVE_ADC1
+	select RA6M5_HAVE_ANALOG0
+	select RA6M5_HAVE_DAC0
+	select RA6M5_HAVE_DAC1
+	select RA6M5_HAVE_CAN0
+	select RA6M5_HAVE_CAN1
+	select RA6M5_HAVE_CEC0
+	select RA6M5_HAVE_ETHER
+	select RA6M5_HAVE_IIC0
+	select RA6M5_HAVE_IIC1
+	select RA6M5_HAVE_IIC2
+	select RA6M5_HAVE_SCI0
+	select RA6M5_HAVE_SCI1
+	select RA6M5_HAVE_SCI2
+	select RA6M5_HAVE_SCI3
+	select RA6M5_HAVE_SCI4
+	select RA6M5_HAVE_SCI5
+	select RA6M5_HAVE_SCI6
+	select RA6M5_HAVE_SCI7
+	select RA6M5_HAVE_SCI8
+	select RA6M5_HAVE_SCI9
+	select RA6M5_HAVE_SPI0
+	select RA6M5_HAVE_SPI1
+	select RA6M5_HAVE_SSI0
+	select RA6M5_HAVE_USB
+	select RA6M5_HAVE_OSPI0
+	select RA6M5_HAVE_QSPI0
+
+choice
+	prompt "Override Flash Size Designator"
+	depends on ARCH_CHIP_RA6M5
+	default RA6M5_FLASH_OVERRIDE_DEFAULT
+	---help---
+		RA6M5 series parts numbering (sans the package type) ends with a letter
+		that designates the FLASH size.
+
+			Designator  Size in KiB
+			     F        1024
+			     G        1536
+			     H        2048
+
+		This configuration option defaults to using the configuration based on that designator
+		or the default smaller size if there is no last character designator is present in the
+		RA6M5 Chip Selection.
+
+		Examples:
+		   If the R7FA6M5BG is chosen, the Flash configuration would be 'G', if a variant of
+		   the part with a 1024 KiB Flash is released in the future one could simply select
+		   the 'G' designator here.
+
+		   If an R7FA6M5BX Series parts is chosen the default Flash configuration will be set
+		   herein and can be changed.
+
+config RA6M5_FLASH_OVERRIDE_DEFAULT
+	bool "Default"
+
+config RA6M5_FLASH_OVERRIDE_F
+	bool "F 1024 KB"
+	
+config RA6M5_FLASH_OVERRIDE_G
+	bool "G 1536 KB"
+
+config RA6M5_FLASH_OVERRIDE_H
+	bool "H 2048 KB"
+
+endchoice # "Override Flash Size Designator"
+
+# Flash configurations
+
+config RA6M5_FLASH_CONFIG_F
+	bool
+	default n
+
+config RA6M5_FLASH_CONFIG_G
+	bool
+	default n
+
+config RA6M5_FLASH_CONFIG_H
+	bool
+	default n
+
+# Pin/package configurations
+
+config RA6M5_IO_CONFIG_FP
+	bool
+	default n
+
+config RA6M5_IO_CONFIG_FB
+	bool
+	default n
+
+config RA6M5_IO_CONFIG_FC
+	bool
+	default n
+
+config RA6M5_IO_CONFIG_BG
+	bool
+	default n
+
+comment "RA6M5 Peripherals"
+
+menu "RA6M5 Peripheral Support"
+
+# These "hidden" settings determine is a peripheral option is available for the
+# selection MCU
+
+config RA6M5_HAVE_ADC0
+	bool
+	default n
+
+config RA6M5_HAVE_ADC1
+	bool
+	default n
+	
+config RA6M5_HAVE_ANALOG0
+	bool
+	default n
+
+config RA6M5_HAVE_DAC0
+	bool
+	default n
+
+config RA6M5_HAVE_DAC1
+	bool
+	default n
+
+config RA6M5_HAVE_CAN0
+	bool
+	default n
+
+config RA6M5_HAVE_CAN1
+	bool
+	default n
+	
+config RA6M5_HAVE_CEC0
+	bool
+	default n
+
+config RA6M5_HAVE_ETHER
+	bool
+	default n
+
+config RA6M5_HAVE_IIC0
+	bool
+	default n
+
+config RA6M5_HAVE_IIC1
+	bool
+	default n
+
+config RA6M5_HAVE_IIC2
+	bool
+	default n
+	
+config RA6M5_HAVE_SCI0
+	bool
+	default n
+
+config RA6M5_HAVE_SCI1
+	bool
+	default n
+
+config RA6M5_HAVE_SCI2
+	bool
+	default n
+	
+config RA6M5_HAVE_SCI3
+	bool
+	default n
+
+config RA6M5_HAVE_SCI4
+	bool
+	default n
+
+config RA6M5_HAVE_SCI5
+	bool
+	default n
+	
+config RA6M5_HAVE_SCI6
+	bool
+	default n
+
+config RA6M5_HAVE_SCI7
+	bool
+	default n
+
+config RA6M5_HAVE_SCI8
+	bool
+	default n
+
+config RA6M5_HAVE_SCI9
+	bool
+	default n
+
+config RA6M5_HAVE_SPI0
+	bool
+	default n
+
+config RA6M5_HAVE_SPI1
+	bool
+	default n
+	
+config RA6M5_HAVE_SSI0
+	bool
+	default n
+	
+config RA6M5_HAVE_USB
+	bool
+	default n
+	
+config RA6M5_HAVE_OSPI0
+	bool
+	default n
+
+config RA6M5_HAVE_QSPI0
+	bool
+	default n
+	
+# These "hidden" settings are the OR of individual peripheral selections
+# indicating that the general capability is required.
+
+config RA6M5_ADC
+	bool
+	default n
+
+config RA6M5_ANALOG
+	bool
+	default n
+	
+config RA6M5_DAC
+	bool
+	default n
+	
+config RA6M5_CAN
+	bool
+	default n
+	
+config RA6M5_CEC
+	bool
+	default n
+	
+config RA6M5_ETHER
+	bool
+	default n
+
+config RA6M5_IIC
+	bool
+	default n
+		
+config RA6M5_SCI
+	bool
+	default n
+
+config RA6M5_SPI
+	bool
+	default n
+
+config RA6M5_SSI
+	bool
+	default n
+	
+config RA6M5_USBFS
+	bool
+	default n
+	
+config RA6M5_OSPI
+	bool
+	default n
+		
+config RA6M5_QSPI
+	bool
+	default n
+	
+config RA6M5_PWM
+	bool
+	default n
+	select ARCH_HAVE_PWM_PULSECOUNT
+	
+# These are the peripheral selections proper
+
+comment "Peripherals"
+	
+config RA6M5_ADC0
+	bool "ADC0"
+	default n
+
+config RA6M5_ANALOG0
+	bool "ANALOG0"
+	default n
+	
+config RA6M5_ADC1
+	bool "ADC1"
+	default n
+
+config RA6M5_OSPI0
+	bool "OSPI0"
+	default n
+
+config RA6M5_QSPI0
+	bool "QSPI0"
+	default n
+	
+config RA6M5_SDHI
+	bool "SDHI"
+	default n
+	
+config RA6M5_PORT0
+	bool "PORT0"
+	default n
+	
+config RA6M5_PORT1
+	bool "PORT1"
+	default n
+
+config RA6M5_PORT2
+	bool "PORT2"
+	default n
+
+config RA6M5_PORT3
+	bool "PORT3"
+	default n
+		
+config RA6M5_PORT4
+	bool "PORT4"
+	default n
+	
+config RA6M5_PORT5
+	bool "PORT5"
+	default n
+
+config RA6M5_PORT6
+	bool "PORT6"
+	default n
+
+config RA6M5_PORT7
+	bool "PORT7"
+	default n
+
+config RA6M5_AGT0
+	bool "AGT0"
+	default n
+
+config RA6M5_AGT1
+	bool "AGT1"
+	default n
+
+config RA6M5_AGT2
+	bool "AGT2"
+	default n
+
+config RA6M5_AGT3
+	bool "AGT3"
+	default n
+	
+config RA6M5_AGT4
+	bool "AGT4"
+	default n
+
+config RA6M5_AGT5
+	bool "AGT5"
+	default n
+	
+config RA6M5_WDT
+	bool "WDT"
+	default n
+
+config RA6M5_SPI0
+	bool "SPI0"
+	default n
+	select SPI
+	select RA6M5_SPI
+	
+config RA6M5_SPI1
+	bool "SPI1"
+	default n
+	select SPI
+	select RA6M5_SPI
+
+config RA6M5_SCI0
+	bool "SCI0"
+	default n
+	select RA6M5_SCI
+	
+config RA6M5_SCI1
+	bool "SCI1"
+	default n
+	select RA6M5_SCI
+
+config RA6M5_SCI2
+	bool "SCI2"
+	default n
+	select RA6M5_SCI
+
+config RA6M5_SCI3
+	bool "SCI3"
+	default n
+	select RA6M5_SCI
+
+config RA6M5_SCI4
+	bool "SCI4"
+	default n
+	select RA6M5_SCI
+
+config RA6M5_SCI5
+	bool "SCI5"
+	default n
+	select RA6M5_SCI
+	
+config RA6M5_SCI6
+	bool "SCI6"
+	default n
+	select RA6M5_SCI
+	
+config RA6M5_SCI7
+	bool "SCI7"
+	default n
+	select RA6M5_SCI
+	
+config RA6M5_SCI8
+	bool "SCI8"
+	default n
+	select RA6M5_SCI
+	
+config RA6M5_SCI9
+	bool "SCI9"
+	default n
+	select RA6M5_SCI
+	
+config RA6M5_IIC0
+	bool "IIC0"
+	default n
+	select I2C
+	select I2C_DRIVER
+	select RA6M5_IIC
+
+if RA6M5_IIC0
+
+config RA6M5_IIC0_BITRATE
+	int "IIC0 Bus Bit Rate"
+	default 100000
+
+config RA6M5_IIC0_NF
+	bool "Enable Noise Filter for IIC0"
+	default y
+
+if RA6M5_IIC0_NF
+
+config RA6M5_IIC0_NF_STAGE
+	int "IIC0 Noise Filter Stages"
+	default 2
+
+endif #RA6M5_IIC0_NF
+
+config RA6M5_IIC0_SDA_DELAY
+	bool "Enable SDA Output Delay"
+	default n
+
+if RA6M5_IIC0_SDA_DELAY
+
+config RA6M5_IIC0_DELAY_CNT
+	int "Number of Cycles Delay"
+	default 1
+
+endif #RA6M5_IIC0_SDA_DELAY
+
+config RA6M5_IIC0_RCV_CONTINUOUS
+	bool "IIC0 receive continuously"
+	default n
+
+config RA6M5_IIC0_RCV_IN_BYTE_UNITS
+	bool "IIC0 receive in byte units"
+	default y
+	depends on !RA6M5_IIC0_RCV_CONTINUOUS
+
+endif #RA6M5_IIC0
+
+config RA6M5_IIC1
+	bool "IIC1"
+	default n
+	select I2C
+	select I2C_DRIVER
+	select RA6M5_IIC
+
+if RA6M5_IIC1
+
+config RA6M5_IIC1_BITRATE
+	int "IIC1 Bus Bit Rate"
+	default 100000
+
+config RA6M5_IIC1_NF
+	bool "Enable Noise Filter for IIC1"
+	default y
+
+if RA6M5_IIC1_NF
+
+config RA6M5_IIC1_NF_STAGE
+	int "IIC1 Noise Filter Stages"
+	default 2
+
+endif #RA6M5_IIC1_NF
+
+config RA6M5_IIC1_SDA_DELAY
+	bool "Enable SDA Output Delay"
+	default n
+
+if RA6M5_IIC1_SDA_DELAY
+
+config RA6M5_IIC1_DELAY_CNT
+	int "Number of Cycles Delay"
+	default 1
+
+endif #RA6M5_IIC1_SDA_DELAY
+
+config RA6M5_IIC1_RCV_CONTINUOUS
+	bool "IIC1 receive continuously"
+	default n
+
+config RA6M5_IIC1_RCV_IN_BYTE_UNITS
+	bool "IIC1 receive in byte units"
+	default y
+	depends on !RA6M5_IIC1_RCV_CONTINUOUS
+
+endif #RA6M5_IIC1
+
+config RA6M5_IIC2
+	bool "IIC2"
+	default n
+	select I2C
+	select I2C_DRIVER
+	select RA6M5_IIC
+
+if RA6M5_IIC2
+
+config RA6M5_IIC2_BITRATE
+	int "IIC2 Bus Bit Rate"
+	default 100000
+
+config RA6M5_IIC2_NF
+	bool "Enable Noise Filter for IIC2"
+	default y
+
+if RA6M5_IIC2_NF
+
+config RA6M5_IIC2_NF_STAGE
+	int "IIC2 Noise Filter Stages"
+	default 2
+
+endif #RA6M5_IIC2_NF
+
+config RA6M5_IIC2_SDA_DELAY
+	bool "Enable SDA Output Delay"
+	default n
+
+if RA6M5_IIC2_SDA_DELAY
+
+config RA6M5_IIC2_DELAY_CNT
+	int "Number of Cycles Delay"
+	default 1
+
+endif #RA6M5_IIC2_SDA_DELAY
+
+config RA6M5_IIC2_RCV_CONTINUOUS
+	bool "IIC2 receive continuously"
+	default n
+
+config RA6M5_IIC2_RCV_IN_BYTE_UNITS
+	bool "IIC2 receive in byte units"
+	default y
+	depends on !RA6M5_IIC2_RCV_CONTINUOUS
+
+endif #RA6M5_IIC2
+	
+config RA6M5_CAN0
+	bool "CAN0"
+	default n
+	
+config RA6M5_CAN1
+	bool "CAN1"
+	default n
+
+config RA6M5_DTC
+	bool "DTC"
+	default n
+
+if RA6M5_DTC
+
+endif #RA6M5_DTC
+	
+config RA6M5_SCI_SERIALDRIVER
+	bool
+	select ARCH_HAVE_SERIAL_TERMIOS
+	
+config RA6M5_SCI_SPIDRIVER
+	bool
+	select SPI
+	select RA6M5_SPI
+	
+config RA6M5_SCI_IICDRIVER
+	bool
+	select I2C
+	select I2C_DRIVER
+	select RA6M5_IIC
+
+config RA6M5_SCI_1WIREDRIVER
+	bool
+	select ARCH_HAVE_SERIAL_TERMIOS
+		
+menu "SCI Configuration"
+	depends on RA6M5_SCI
+
+choice
+	prompt "SCI0 Configuration"
+	default RA6M5_SCI0_UART
+	depends on RA6M5_SCI0
+
+config RA6M5_SCI0_UART
+	bool "UART"
+	select SCI0_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI0_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI0_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI0_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI0 Configuration
+
+if RA6M5_SCI0_UART
+
+config SCI0_RS485
+	bool "SCI0 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI0
+	---help---
+		Enable RS-485 interface on SCI0. Your board config will have to
+		provide GPIO_SCI0_RS485_DIR pin definition. Currently it cannot be
+		used with SCI0_RXDMA.
+
+config SCI0_RS485_DIR_POLARITY
+	int "SCI0 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI0_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI0. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI0_RXDMA
+	bool "SCI0 Rx DMA"
+	default n
+	depends on RA6M5_SCI0 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI0_UART
+
+choice
+	prompt "SCI1 Configuration"
+	default RA6M5_SCI1_UART
+	depends on RA6M5_SCI1
+
+config RA6M5_SCI1_UART
+	bool "UART"
+	select SCI1_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI1_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI1_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI1_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI1 Configuration
+
+if RA6M5_SCI1_UART
+
+config SCI1_RS485
+	bool "SCI1 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI1
+	---help---
+		Enable RS-485 interface on SCI1. Your board config will have to
+		provide GPIO_SCI1_RS485_DIR pin definition. Currently it cannot be
+		used with SCI1_RXDMA.
+
+config SCI1_RS485_DIR_POLARITY
+	int "SCI1 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI1_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI1. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI1_RXDMA
+	bool "SCI1 Rx DMA"
+	default n
+	depends on RA6M5_SCI1 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI1_UART
+
+choice
+	prompt "SCI2 Configuration"
+	default RA6M5_SCI2_UART
+	depends on RA6M5_SCI2
+
+config RA6M5_SCI2_UART
+	bool "UART"
+	select SCI2_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI2_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI2_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI2_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI2 Configuration
+
+if RA6M5_SCI2_UART
+
+config SCI2_RS485
+	bool "SCI2 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI2
+	---help---
+		Enable RS-485 interface on SCI2. Your board config will have to
+		provide GPIO_SCI2_RS485_DIR pin definition. Currently it cannot be
+		used with SCI2_RXDMA.
+
+config SCI2_RS485_DIR_POLARITY
+	int "SCI2 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI2_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI2. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI2_RXDMA
+	bool "SCI2 Rx DMA"
+	default n
+	depends on RA6M5_SCI2 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI2_UART
+
+choice
+	prompt "SCI3 Configuration"
+	default RA6M5_SCI3_UART
+	depends on RA6M5_SCI3
+
+config RA6M5_SCI3_UART
+	bool "UART"
+	select SCI3_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI3_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI3_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI3_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI3 Configuration
+
+if RA6M5_SCI3_UART
+
+config SCI3_RS485
+	bool "SCI3 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI3
+	---help---
+		Enable RS-485 interface on SCI3. Your board config will have to
+		provide GPIO_SCI3_RS485_DIR pin definition. Currently it cannot be
+		used with SCI3_RXDMA.
+
+config SCI3_RS485_DIR_POLARITY
+	int "SCI3 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI3_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI3. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI3_RXDMA
+	bool "SCI3 Rx DMA"
+	default n
+	depends on RA6M5_SCI3 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI3_UART
+
+choice
+	prompt "SCI4 Configuration"
+	default RA6M5_SCI4_UART
+	depends on RA6M5_SCI4
+
+config RA6M5_SCI4_UART
+	bool "UART"
+	select SCI4_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI4_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI4_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI4_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI4 Configuration
+
+if RA6M5_SCI4_UART
+
+config SCI4_RS485
+	bool "SCI4 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI4
+	---help---
+		Enable RS-485 interface on SCI4. Your board config will have to
+		provide GPIO_SCI4_RS485_DIR pin definition. Currently it cannot be
+		used with SCI4_RXDMA.
+
+config SCI4_RS485_DIR_POLARITY
+	int "SCI4 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI4_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI4. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI4_RXDMA
+	bool "SCI4 Rx DMA"
+	default n
+	depends on RA6M5_SCI4 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI4_UART
+
+choice
+	prompt "SCI5 Configuration"
+	default RA6M5_SCI5_UART
+	depends on RA6M5_SCI5
+
+config RA6M5_SCI5_UART
+	bool "UART"
+	select SCI5_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI5_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI5_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI5_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI5 Configuration
+
+if RA6M5_SCI5_UART
+
+config SCI5_RS485
+	bool "SCI5 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI5
+	---help---
+		Enable RS-485 interface on SCI5. Your board config will have to
+		provide GPIO_SCI5_RS485_DIR pin definition. Currently it cannot be
+		used with SCI5_RXDMA.
+
+config SCI5_RS485_DIR_POLARITY
+	int "SCI5 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI5_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI5. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI5_RXDMA
+	bool "SCI5 Rx DMA"
+	default n
+	depends on RA6M5_SCI5 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI5_UART
+
+choice
+	prompt "SCI6 Configuration"
+	default RA6M5_SCI6_UART
+	depends on RA6M5_SCI6
+
+config RA6M5_SCI6_UART
+	bool "UART"
+	select SCI6_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI6_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI6_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI6_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI6 Configuration
+
+if RA6M5_SCI6_UART
+
+config SCI6_RS485
+	bool "SCI6 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI6
+	---help---
+		Enable RS-485 interface on SCI6. Your board config will have to
+		provide GPIO_SCI6_RS485_DIR pin definition. Currently it cannot be
+		used with SCI6_RXDMA.
+
+config SCI6_RS485_DIR_POLARITY
+	int "SCI6 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI6_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI6. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI6_RXDMA
+	bool "SCI6 Rx DMA"
+	default n
+	depends on RA6M5_SCI6 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI6_UART
+
+choice
+	prompt "SCI7 Configuration"
+	default RA6M5_SCI7_UART
+	depends on RA6M5_SCI7
+
+config RA6M5_SCI7_UART
+	bool "UART"
+	select SCI7_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI7_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI7_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI7_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI7 Configuration
+
+if RA6M5_SCI7_UART
+
+config SCI7_RS485
+	bool "SCI7 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI7
+	---help---
+		Enable RS-485 interface on SCI7. Your board config will have to
+		provide GPIO_SCI7_RS485_DIR pin definition. Currently it cannot be
+		used with SCI7_RXDMA.
+
+config SCI7_RS485_DIR_POLARITY
+	int "SCI7 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI7_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI7. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI7_RXDMA
+	bool "SCI7 Rx DMA"
+	default n
+	depends on RA6M5_SCI7 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI7_UART
+
+choice
+	prompt "SCI8 Configuration"
+	default RA6M5_SCI8_UART
+	depends on RA6M5_SCI8
+
+config RA6M5_SCI8_UART
+	bool "UART"
+	select SCI8_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI8_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI8_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI8_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI8 Configuration
+
+if RA6M5_SCI8_UART
+
+config SCI8_RS485
+	bool "SCI8 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI8
+	---help---
+		Enable RS-485 interface on SCI8. Your board config will have to
+		provide GPIO_SCI8_RS485_DIR pin definition. Currently it cannot be
+		used with SCI8_RXDMA.
+
+config SCI8_RS485_DIR_POLARITY
+	int "SCI8 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI8_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI8. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI8_RXDMA
+	bool "SCI8 Rx DMA"
+	default n
+	depends on RA6M5_SCI8 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI8_UART
+
+choice
+	prompt "SCI9 Configuration"
+	default RA6M5_SCI9_UART
+	depends on RA6M5_SCI9
+
+config RA6M5_SCI9_UART
+	bool "UART"
+	select SCI9_SERIALDRIVER
+	select RA6M5_SCI_SERIALDRIVER
+
+config RA6M5_SCI9_SPI
+	bool "SPI"
+	select RA6M5_SCI_SPIDRIVER
+
+config RA6M5_SCI9_IIC
+	bool "IIC"
+	select RA6M5_SCI_IICDRIVER
+	
+config RA6M5_SCI9_1WIREDRIVER
+	bool "1-Wire"
+	select RA6M5_SCI_1WIREDRIVER
+		
+endchoice # SCI9 Configuration
+
+if RA6M5_SCI9_UART
+
+config SCI9_RS485
+	bool "SCI9 RS-485 Enable"
+	default n
+	depends on RA6M5_SCI9
+	---help---
+		Enable RS-485 interface on SCI9. Your board config will have to
+		provide GPIO_SCI9_RS485_DIR pin definition. Currently it cannot be
+		used with SCI9_RXDMA.
+
+config SCI9_RS485_DIR_POLARITY
+	int "SCI9 RS-485 DIR polarity"
+	default 1
+	range 0 1
+	depends on SCI9_RS485
+	---help---
+		Polarity of DIR pin for RS-485 on SCI9. Set to state on DIR pin which
+		enables TX (0 - low / nTXEN, 1 - high / TXEN).
+
+config SCI9_RXDMA
+	bool "SCI9 Rx DMA"
+	default n
+	depends on RA6M5_SCI9 && (RA6M5_DMA1)
+	---help---
+		In high data rate usage, Rx DMA may eliminate Rx overrun errors
+endif # RA6M5_SCI9_UART
+
+endmenu # SCI Configuration
+
+if RA6M5_SCI_SERIALDRIVER
+
+comment "Serial Driver Configuration"
+
+config RA6M5_SERIAL_RXDMA_BUFFER_SIZE
+	int "Rx DMA buffer size"
+	default 32
+	depends on SCI0_RXDMA || SCI1_RXDMA || SCI2_RXDMA || SCI3_RXDMA || SCI4_RXDMA || SCI5_RXDMA || SCI6_RXDMA || SCI7_RXDMA || SCI8_RXDMA || SCI9_RXDMA
+	---help---
+		The DMA buffer size when using RX DMA to emulate a FIFO.
+
+		When streaming data, the generic serial layer will be called
+		every time the FIFO receives half this number of bytes.
+
+		Value given here will be rounded up to next multiple of 32 bytes.
+
+config RA6M5_SERIAL_DISABLE_REORDERING
+	bool "Disable reordering of ttySx devices."
+	depends on SCI0_RXDMA || SCI1_RXDMA || SCI2_RXDMA || SCI3_RXDMA || SCI4_RXDMA || SCI5_RXDMA || SCI6_RXDMA || SCI7_RXDMA || SCI8_RXDMA || SCI9_RXDMA
+	default n
+	---help---
+		NuttX per default reorders the serial ports (/dev/ttySx) so that the
+		console is always on /dev/ttyS0. If more than one UART is in use this
+		can, however, have the side-effect that all port mappings
+		(hardware USART1 -> /dev/ttyS0) change if the console is moved to another
+		UART. This is in particular relevant if a project uses the USB console
+		in some boards and a serial console in other boards, but does not
+		want the side effect of having all serial port names change when just
+		the console is moved from serial to USB.
+
+config RA6M5_FLOWCONTROL_BROKEN
+	bool "Use Software UART RTS flow control"
+	depends on RA6M5_SCI
+	default n
+	---help---
+		Enable UART RTS flow control using Software. Because STM
+		Current STM32 have broken HW based RTS behavior (they assert
+		nRTS after every byte received)  Enable this setting workaround
+		this issue by using software based management of RTS
+
+config RA6M5_SCI_BREAKS
+	bool "Add TIOxSBRK to support sending Breaks"
+	depends on RA6M5_SCI
+	default n
+	---help---
+		Add TIOCxBRK routines to send a line break per the STM32 manual, the
+		break will be a pulse based on the value M. This is not a BSD compatible
+		break.
+
+config RA6M5_SERIALBRK_BSDCOMPAT
+	bool "Use GPIO To send Break"
+	depends on RA6M5_SCI && RA6M5_SCI_BREAKS
+	default n
+	---help---
+		Enable using GPIO on the TX pin to send a BSD compatible break:
+		TIOCSBRK will start the break and TIOCCBRK will end the break.
+		The current RA6M5 U[S]ARTS have no way to leave the break on
+		(TX=LOW) because software starts the break and then the hardware
+		automatically clears the break. This makes it difficult to send
+		a long break.
+
+config RA6M5_SCI_SINGLEWIRE
+	bool "Single Wire Support"
+	default n
+	depends on RA6M5_SCI
+	---help---
+		Enable single wire UART support.  The option enables support for the
+		TIOCSSINGLEWIRE ioctl in the RA6M5 serial driver.
+
+config RA6M5_SCI_INVERT
+	bool "Signal Invert Support"
+	default n
+	depends on RA6M5_SCI
+	---help---
+		Enable signal inversion UART support. The option enables support for the
+		TIOCSINVERT ioctl in the RA6M5 serial driver.
+
+config RA6M5_SCI_SWAP
+	bool "Swap RX/TX pins support"
+	default n
+	depends on RA6M5_SCI
+	---help---
+		Enable RX/TX pin swapping support. The option enables support for the
+		TIOCSSWAP ioctl in the RA6M5 serial driver.
+
+if PM
+
+config RA6M5_PM_SERIAL_ACTIVITY
+	int "PM serial activity"
+	default 10
+	---help---
+		PM activity reported to power management logic on every serial
+		interrupt.
+
+endif
+
+endif # RA6M5_SCI_SERIALDRIVER
+
+menu "SPI Configuration"
+	depends on RA6M5_SPI
+
+config RA6M5_SPI_INTERRUPTS
+	bool "Interrupt driver SPI"
+	default n
+	---help---
+		Select to enable interrupt driven SPI support. Non-interrupt-driven,
+		poll-waiting is recommended if the interrupt rate would be to high in
+		the interrupt driven case.
+
+config RA6M5_SPI_DMA
+	bool "SPI DMA"
+	default n
+	---help---
+		Use DMA to improve SPI transfer performance.  Cannot be used with RA6M5_SPI_INTERRUPT.
+
+endmenu
+
+menu "SD/MMC Configuration"
+	depends on RA6M5_SDMMC
+
+config RA6M5_SDMMC_XFRDEBUG
+	bool "SDMMC transfer debug"
+	depends on DEBUG_FS_INFO
+	default n
+	---help---
+		Enable special debug instrumentation analyze SDMMC data transfers.
+		This logic is as non-invasive as possible:  It samples SDMMC
+		registers at key points in the data transfer and then dumps all of
+		the registers at the end of the transfer.  If DEBUG_DMA is also
+		enabled, then DMA register will be collected as well.  Requires also
+		DEBUG_FS and CONFIG_DEBUG_INFO.
+
+config RA6M5_SDMMC_DMA
+	bool "Support DMA data transfers"
+	default n
+	select SDIO_DMA
+	depends on RA6M5_DMA
+	---help---
+		Support DMA data transfers.
+
+menu "SDMMC1 Configuration"
+	depends on RA6M5_SDMMC1
+
+config RA6M5_SDMMC1_DMAPRIO
+	hex "SDMMC1 DMA priority"
+	default 0x00001000
+	---help---
+		Select SDMMC1 DMA priority.
+
+		Options are: 0x00000000 low, 0x00001000 medium,
+		0x00002000 high, 0x00003000 very high.  Default: medium.
+
+config SDMMC1_WIDTH_D1_ONLY
+	bool "Use D1 only on SDMMC1"
+	default n
+	---help---
+		Select 1-bit transfer mode.  Default: 4-bit transfer mode.
+
+endmenu # SDMMC1 Configuration
+endmenu # SD/MMC Configuration
+
+menu "CAN driver configuration"
+	depends on RA6M5_CAN0 || RA6M5_CAN1
+
+config RA6M5_CAN0_BAUD
+	int "CAN1 BAUD"
+	default 250000
+	depends on RA6M5_CAN0
+	---help---
+		CAN1 BAUD rate.  Required if CONFIG_RA6M5_CAN0 is defined.
+
+config RA6M5_CAN1_BAUD
+	int "CAN2 BAUD"
+	default 250000
+	depends on RA6M5_CAN1
+	---help---
+		CAN2 BAUD rate.  Required if CONFIG_RA6M5_CAN1 is defined.
+
+config RA6M5_CAN_TSEG1
+	int "TSEG1 quanta"
+	default 6
+	---help---
+		The number of CAN time quanta in segment 1. Default: 6
+
+config RA6M5_CAN_TSEG2
+	int "TSEG2 quanta"
+	default 7
+	---help---
+		The number of CAN time quanta in segment 2. Default: 7
+
+config RA6M5_CAN_REGDEBUG
+	bool "CAN Register level debug"
+	depends on DEBUG_CAN_INFO
+	default n
+	---help---
+		Output detailed register-level CAN device debug information.
+		Requires also CONFIG_DEBUG_CAN_INFO.
+
+endmenu
+
+endmenu # RA6M5 Peripheral Support
+
+endif # ARCH_CHIP_RA6M5
