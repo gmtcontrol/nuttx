@@ -300,11 +300,11 @@ void ra6m5_stdclockconfig(void)
     }
 
     /* Configure the subclock drive as subclock is not running. */
-    putreg8(0, RA6M5_SYSTEM_REG(RA6M5_SYS_SOMCR_OFFSET));
+    putreg8(2, RA6M5_SYSTEM_REG(RA6M5_SYS_SOMCR_OFFSET));
 
     /* Restart the Sub-Clock Oscillator. */
     putreg8(0, RA6M5_SYSTEM_REG(RA6M5_SYS_SOSCCR_OFFSET));
-
+    up_udelay(2000);
 
     /* Start HOCO */
     putreg8(0, RA6M5_SYSTEM_REG(RA6M5_SYS_HOCOCR_OFFSET));

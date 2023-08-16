@@ -52,6 +52,14 @@ ifeq ($(CONFIG_DEBUG_FEATURES),y)
 CHIP_CSRCS += ra6m5_dumpgpio.c
 endif
 
+ifeq ($(CONFIG_RA6M5_RTC),y)
+CHIP_CSRCS += ra6m5_rtc.c
+endif
+
+ifeq ($(CONFIG_RTC_DRIVER),y)
+CHIP_CSRCS += ra6m5_rtc_lowerhalf.c
+endif
+
 ifeq ($(CONFIG_RA6M5_DTC),y)
 CHIP_CSRCS += ra6m5_dtc.c
 endif

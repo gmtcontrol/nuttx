@@ -234,6 +234,15 @@ static const uint32_t g_interrupt_event_link_select[RA6M5_IRQ_NEXTINTS] =
 #ifdef RA6M5_IRQ_DTC_END
   ELC_EVENT_DTC_END,
 #endif
+#ifdef RA6M5_IRQ_RTC_ALARM
+  ELC_EVENT_RTC_ALARM,
+#endif
+#ifdef RA6M5_IRQ_RTC_PEROID
+  ELC_EVENT_RTC_PERIOD,
+#endif
+#ifdef RA6M5_IRQ_RTC_CARRY
+  ELC_EVENT_RTC_CARRY,
+#endif
 };
 
 /****************************************************************************
@@ -434,6 +443,71 @@ static int ra6m5_irqinfo(int irq, uintptr_t *regaddr, uint32_t *bit,
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
+
+/****************************************************************************
+ * Name: up_status_irq
+ *
+ * Description:
+ *   Check a pending interrupt at the NVIC. 
+ *
+ ****************************************************************************/
+
+bool up_status_irq(int irq)
+{
+  uintptr_t regaddr;
+  uint32_t bit, n;
+
+  if (irq >= RA6M5_IRQ_FIRST)
+    {
+      /* Get the pending interrupt register and bit */
+      n = irq - RA6M5_IRQ_FIRST;
+      regaddr = NVIC_IRQ_CLRPEND(n);
+      bit     = (uint32_t)1 << (n & 0x1f);
+
+      /* Get the appropriate bit in the register to check the pending interrupt. */
+      return ((getreg32(regaddr) & bit) != 0);
+    }
+
+  return false;
+}
+
+/****************************************************************************
+ * Name: up_clear_irq
+ *
+ * Description:
+ *   Clear a pending interrupt at the NVIC.  This does not seem to be
+ *   required for most interrupts.
+ *
+ ****************************************************************************/
+
+void up_clear_irq(int irq)
+{
+  uintptr_t regaddr;
+  uint32_t bit, n;
+  uint32_t ielsr;
+
+  if (irq >= RA6M5_IRQ_FIRST)
+    {
+      /* Get the pending interrupt register and bit */
+      n = irq - RA6M5_IRQ_FIRST;
+      regaddr = NVIC_IRQ_CLRPEND(n);
+      bit     = (uint32_t)1 << (n & 0x1f);
+
+      /* Clear the IR bit in the selected IELSR register */
+      ielsr = getreg32(RA6M5_ICU_IELSR_REG(n));
+      ielsr &= ~ICU_IELSR_IR;
+      putreg32(ielsr, RA6M5_ICU_IELSR_REG(n));
+
+      /* Read back the IELSR register to ensure that the IR bit is cleared */
+      __asm__ volatile ("" : : "r" (RA6M5_ICU_IELSR_REG(n)));
+
+      /* Flush memory transactions to ensure that the IR bit is cleared before clearing the pending bit in the NVIC */
+      __asm__ volatile ("dmb 0xF":::"memory");
+
+      /* Modify the appropriate bit in the register to clear the pending interrupt. */
+      putreg32(bit, regaddr);
+    }
+}
 
 /****************************************************************************
  * Name: up_irqinitialize
@@ -654,23 +728,7 @@ void up_enable_irq(int irq)
 
 void arm_ack_irq(int irq)
 {
-  int n;
-
-  /* Check for external interrupt */
-
-  if (irq >= RA6M5_IRQ_FIRST) 
-    {
-      n = irq - RA6M5_IRQ_FIRST;
-
-      /* Clear the IR bit in the selected IELSR register */
-      modreg32(0, ICU_IELSR_IR, RA6M5_ICU_IELSR_REG(n));
-
-      /* Read back the IELSR register to ensure that the IR bit is cleared */
-     __asm__ volatile ("" : : "r" (RA6M5_ICU_IELSR_REG(n)));
-
-      /* Flush memory transactions to ensure that the IR bit is cleared before clearing the pending bit in the NVIC */
-      __asm__ volatile ("dmb 0xF":::"memory");
-    }
+  up_clear_irq(irq);
 }
 
 /****************************************************************************

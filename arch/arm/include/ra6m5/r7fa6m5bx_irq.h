@@ -298,7 +298,7 @@
 #  define RA6M5_IRQ_IIC2_TXI    (RA6M5_IIC2_IRQBASE + RA6M5_TXI_IRQ_OFFSET) /* IIC2 Transmit data empty interrupt */
 #  define RA6M5_IRQ_IIC2_TEI    (RA6M5_IIC2_IRQBASE + RA6M5_TEI_IRQ_OFFSET) /* IIC2 Transmit end interrupt */
 #  define RA6M5_IRQ_IIC2_ERI    (RA6M5_IIC2_IRQBASE + RA6M5_ERI_IRQ_OFFSET) /* IIC2 Receive error interrupt */
-#  define RA6M5_DTC0_IRQBASE    (RA6M5_IIC2_IRQBASE + RA6M5_SCI_NIRQS)
+#  define RA6M5_DTC_IRQBASE     (RA6M5_IIC2_IRQBASE + RA6M5_SCI_NIRQS)
 #else 
 #  define RA6M5_DTC_IRQBASE     (RA6M5_IIC2_IRQBASE)
 #endif
@@ -306,6 +306,15 @@
 #ifdef CONFIG_RA6M5_DTC
 #  define RA6M5_IRQ_DTC_COMP    (RA6M5_DTC_IRQBASE + 0) /* DTC transfer complete interrupt */
 #  define RA6M5_IRQ_DTC_END     (RA6M5_DTC_IRQBASE + 1) /* DTC transfer end interrupt */
+#  define RA6M5_RTC_IRQBASE     (RA6M5_DTC_IRQBASE + 2)
+#else 
+#  define RA6M5_RTC_IRQBASE     (RA6M5_DTC_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_RTC
+#  define RA6M5_IRQ_RTC_ALARM   (RA6M5_RTC_IRQBASE + 0) /* RTC Alarm interrupt */
+#  define RA6M5_IRQ_RTC_PERIOD  (RA6M5_RTC_IRQBASE + 1) /* RTC Periodic interrupt */
+#  define RA6M5_IRQ_RTC_CARRY   (RA6M5_RTC_IRQBASE + 2) /* RTC Carry interrupt */
 #else 
 
 #endif

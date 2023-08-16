@@ -37,10 +37,9 @@
 
 #include <arch/board/board.h>
 
-#include "chip.h"
+#include "ra6m5_iic.h"
 #include "ra6m5_rcc.h"
 #include "ra6m5_gpio.h"
-#include "ra6m5_iic.h"
 
 
 /****************************************************************************
@@ -215,7 +214,7 @@ static const struct i2c_ops_s ra6m5_i2c_ops =
 };
 
 #ifdef CONFIG_RA6M5_IIC0
-static const struct ra6m5_i2c_dev_s ra6m5_riic0_dev =
+static const struct ra6m5_i2c_dev_s ra6m5_iic0_dev =
 {
   .base       = RA6M5_I2C0_BASE,
   .frequency  = CONFIG_RA6M5_IIC0_BITRATE,
@@ -225,14 +224,14 @@ static const struct ra6m5_i2c_dev_s ra6m5_riic0_dev =
   .tei_irq    = RA6M5_IRQ_IIC0_TEI,
   .eri_irq    = RA6M5_IRQ_IIC0_ERI,
 #endif
-  .sda_pin    = GPIO_IIC0_SDA,
   .scl_pin    = GPIO_IIC0_SCL,
+  .sda_pin    = GPIO_IIC0_SDA,
 };
 
-static struct ra6m5_i2c_priv_s ra6m5_riic0_priv =
+static struct ra6m5_i2c_priv_s ra6m5_iic0_priv =
 {
   .ops       = &ra6m5_i2c_ops,
-  .dev       = &ra6m5_riic0_dev,
+  .dev       = &ra6m5_iic0_dev,
   .refs      = 0,
   .bus       = 0,
   .lock      = NXMUTEX_INITIALIZER,
@@ -251,7 +250,7 @@ static struct ra6m5_i2c_priv_s ra6m5_riic0_priv =
 #endif
 
 #ifdef CONFIG_RA6M5_IIC1
-static const struct ra6m5_i2c_dev_s ra6m5_riic1_dev =
+static const struct ra6m5_i2c_dev_s ra6m5_iic1_dev =
 {
   .base      = RA6M5_I2C1_BASE,
   .frequency = CONFIG_RA6M5_IIC1_BITRATE,
@@ -261,14 +260,14 @@ static const struct ra6m5_i2c_dev_s ra6m5_riic1_dev =
   .tei_irq    = RA6M5_IRQ_IIC1_TEI,
   .eri_irq    = RA6M5_IRQ_IIC1_ERI,
 #endif
-  .sda_pin    = GPIO_IIC1_SDA,
   .scl_pin    = GPIO_IIC1_SCL,
+  .sda_pin    = GPIO_IIC1_SDA,
 };
 
-static struct ra6m5_i2c_priv_s ra6m5_riic1_priv =
+static struct ra6m5_i2c_priv_s ra6m5_iic1_priv =
 {
   .ops       = &ra6m5_i2c_ops,
-  .dev       = &ra6m5_riic1_dev,
+  .dev       = &ra6m5_iic1_dev,
   .refs      = 0,
   .bus       = 1,
   .lock      = NXMUTEX_INITIALIZER,
@@ -287,7 +286,7 @@ static struct ra6m5_i2c_priv_s ra6m5_riic1_priv =
 #endif
 
 #ifdef CONFIG_RA6M5_IIC2
-static const struct ra6m5_i2c_dev_s ra6m5_riic2_dev =
+static const struct ra6m5_i2c_dev_s ra6m5_iic2_dev =
 {
   .base      = RA6M5_I2C2_BASE,
   .frequency = CONFIG_RA6M5_IIC2_BITRATE,
@@ -297,14 +296,14 @@ static const struct ra6m5_i2c_dev_s ra6m5_riic2_dev =
   .tei_irq    = RA6M5_IRQ_IIC2_TEI,
   .eri_irq    = RA6M5_IRQ_IIC2_ERI,
 #endif
-  .sda_pin    = GPIO_IIC2_SDA,
   .scl_pin    = GPIO_IIC2_SCL,
+  .sda_pin    = GPIO_IIC2_SDA,
 };
 
-static struct ra6m5_i2c_priv_s ra6m5_riic2_priv =
+static struct ra6m5_i2c_priv_s ra6m5_iic2_priv =
 {
   .ops       = &ra6m5_i2c_ops,
-  .dev       = &ra6m5_riic2_dev,
+  .dev       = &ra6m5_iic2_dev,
   .refs      = 0,
   .bus       = 2,
   .lock      = NXMUTEX_INITIALIZER,
@@ -375,38 +374,6 @@ static inline void ra6m5_riic_modifyreg(struct ra6m5_i2c_priv_s *priv,
  ****************************************************************************/
 
 /****************************************************************************
- * Name: riic_mpc_enable
- *
- * Description:
- * Enable writing to registers
- ****************************************************************************/
-
-static void riic_mpc_enable(void)
-{
-  /* Enable writing to registers related to operating modes,
-   * LPC, CGC and software reset
-   */
-
-
-  /* Enable writing to MPC pin function control registers */
-}
-
-/****************************************************************************
- * Name: riic_mpc_disable
- *
- * Description:
- * Disable writing to registers
- ****************************************************************************/
-
-static void riic_mpc_disable(void)
-{
-  /* Disable writing to MPC pin function control registers */
-
-  /* Enable protection */
-
-}
-
-/****************************************************************************
  * Name: ra6m5_iic_iicrst
  *
  * Description:
@@ -417,14 +384,16 @@ static int ra6m5_iic_iicrst(struct ra6m5_i2c_priv_s *priv)
 {
   uint8_t regval;
 
+  /* Assert the bus reset */
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
-  regval |= IIC_ICCR1_ICE;
+  regval |= IIC_ICCR1_IICRST;
   ra6m5_riic_putreg(priv, RA6M5_IIC_ICCR1_OFFSET, regval);
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
 
+  /* Release the bus reset */
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
-  regval &= ~(IIC_ICCR1_ICE);
-  ra6m5_riic_putreg(priv, RA6M5_IIC_ICCR1_OFFSET,regval );
+  regval &= ~(IIC_ICCR1_IICRST);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICCR1_OFFSET, regval);
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
 
   return OK;
@@ -444,8 +413,8 @@ static void ra6m5_iic_set_icier(struct ra6m5_i2c_priv_s *priv,
   uint8_t regval;
   regval = (value | IIC_ICIER_TMOIE);
 
-  ra6m5_riic_putreg(priv, RA6M5_IIC_ICFER_OFFSET, regval);
-  regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICFER_OFFSET);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICIER_OFFSET, regval);
+  regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICIER_OFFSET);
 }
 
 /****************************************************************************
@@ -552,7 +521,7 @@ static void ra6m5_iic_setclock(struct ra6m5_i2c_priv_s *priv,
 
       /* Calculation of ICBRL value */
 
-      calc_val = (calc_val_tmp / (d_cks[cnt] / g_clock_freq[RA6M5_CLOCKS_SOURCE_PCLKB]));
+      calc_val = (calc_val_tmp / (d_cks[cnt] / (double)g_clock_freq[RA6M5_CLOCKS_SOURCE_PCLKB]));
       calc_val = calc_val + 0.5; /* round off */
     }
 
@@ -575,7 +544,7 @@ static void ra6m5_iic_setclock(struct ra6m5_i2c_priv_s *priv,
 
   /* Calculation ICBRH value */
 
-  calc_val = (calc_val_tmp / (d_cks[cnt - 1] / g_clock_freq[RA6M5_CLOCKS_SOURCE_PCLKB]));
+  calc_val = (calc_val_tmp / (d_cks[cnt - 1] / (double)g_clock_freq[RA6M5_CLOCKS_SOURCE_PCLKB]));
   calc_val = (uint8_t)(calc_val + 0.5); /* Round off */
 
   /* If the calculated value is less than 1, it rounded up to 1. */
@@ -588,7 +557,7 @@ static void ra6m5_iic_setclock(struct ra6m5_i2c_priv_s *priv,
   /* Set value to ICBRH register */
 
   regval = (uint8_t)((uint8_t)(calc_val - 1) | RIIC_ICBRH_MASK);
-  ra6m5_riic_putreg(priv, regval, RA6M5_IIC_ICBRH_OFFSET);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICBRH_OFFSET, regval);
 }
 
 /****************************************************************************
@@ -635,19 +604,6 @@ static int ra6m5_iic_irq_init(struct ra6m5_i2c_priv_s *priv)
 {
   int ret;
 
-  #if 0
-  IEN(ICU, GROUPBL1) = 0;     /* Disable Group BL1 interrupts */
-  IR(ICU, GROUPBL1)  = 0;     /* Clear interrupt flag */
-  IPR(ICU, GROUPBL1) = RIIC_INTERRUPT_PRIO;
-  IEN(ICU, GROUPBL1) = 1;     /* Enable Group BL1 interrupt */
-
-  IR(RIIC0, RXI0)  = 0;
-  IPR(RIIC0, RXI0) = RIIC_INTERRUPT_PRIO;
-
-  IR(RIIC0, TXI0)  = 0;
-  IPR(RIIC0, TXI0) = RIIC_INTERRUPT_PRIO;
-  #endif
-
   ret = irq_attach(priv->dev->rxi_irq, ra6m5_iic_rxi_isr, priv);
   ret = irq_attach(priv->dev->txi_irq, ra6m5_iic_txi_isr, priv);
   ret = irq_attach(priv->dev->tei_irq, ra6m5_iic_tei_isr, priv);
@@ -680,11 +636,11 @@ static void ra6m5_iic_init(struct ra6m5_i2c_priv_s *priv)
 
   /* Configure pins */
 
-  if (ra6m5_configgpio(priv->dev->sda_pin) < 0) {
+  if (ra6m5_configgpio(priv->dev->scl_pin) < 0) {
       return;
   }
 
-  if (ra6m5_configgpio(priv->dev->scl_pin) < 0) {
+  if (ra6m5_configgpio(priv->dev->sda_pin) < 0) {
       return;
   }
 
@@ -704,16 +660,16 @@ static void ra6m5_iic_init(struct ra6m5_i2c_priv_s *priv)
 
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
   regval |= IIC_ICCR1_ICE;
-  ra6m5_riic_putreg(priv, regval, RA6M5_IIC_ICCR1_OFFSET);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICCR1_OFFSET, regval);
 
   /* Set SARLy and SARUy */
 
-  ra6m5_riic_putreg(priv, RA6M5_IIC_SARL0_OFFSET, 0x00);
-  ra6m5_riic_putreg(priv, RA6M5_IIC_SARU0_OFFSET, 0x00);
-  ra6m5_riic_putreg(priv, RA6M5_IIC_SARL1_OFFSET, 0x00);
-  ra6m5_riic_putreg(priv, RA6M5_IIC_SARU1_OFFSET, 0x00);
-  ra6m5_riic_putreg(priv, RA6M5_IIC_SARL2_OFFSET, 0x00);
-  ra6m5_riic_putreg(priv, RA6M5_IIC_SARU2_OFFSET, 0x00);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_SARL0_OFFSET, RIIC_REG_INIT);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_SARU0_OFFSET, RIIC_REG_INIT);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_SARL1_OFFSET, RIIC_REG_INIT);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_SARU1_OFFSET, RIIC_REG_INIT);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_SARL2_OFFSET, RIIC_REG_INIT);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_SARU2_OFFSET, RIIC_REG_INIT);
 
   /* Set I2C bus frequency */
 
@@ -725,95 +681,86 @@ static void ra6m5_iic_init(struct ra6m5_i2c_priv_s *priv)
   regval &= 0x00;
   ra6m5_riic_putreg(priv, RA6M5_IIC_ICSER_OFFSET, regval);
 
-#ifndef CONFIG_RA6M5_IIC0_NF
-  regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICFER_OFFSET);
-  regval &= ~IIC_ICFER_NFE;
-  ra6m5_riic_putreg(priv, RA6M5_IIC_ICSER_OFFSET, regval);
-#else
-  regval  = ra6m5_riic_getreg(priv, RA6M5_IIC_ICMR3_OFFSET);
-  regval &= ~IIC_ICMR3_NF_MASK; 
-
-  #if 0
-  switch (CONFIG_RA6M5_IIC0_NF_STAGE)
-    {
-      case 1:
-        regval |= RA6M5_RIIC_ICMR3_NF1;
-        break;
-
-      case 2:
-        regval |= RA6M5_RIIC_ICMR3_NF2;
-        break;
-
-      case 3:
-        regval |= RA6M5_RIIC_ICMR3_NF3;
-        break;
-
-      case 4:
-        regval |= RA6M5_RIIC_ICMR3_NF4;
-        break;
-    }
+  if (0 == priv->bus)
+  {
+  #ifndef CONFIG_RA6M5_IIC0_NF
+    regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICFER_OFFSET);
+    regval &= ~IIC_ICFER_NFE;
+    ra6m5_riic_putreg(priv, RA6M5_IIC_ICFER_OFFSET, regval);
   #else
-  regval |= IIC_ICMR3_NF(1);
-  #endif
-  ra6m5_riic_putreg(priv, RA6M5_IIC_ICMR3_OFFSET, regval);
-#endif
+    regval  = ra6m5_riic_getreg(priv, RA6M5_IIC_ICMR3_OFFSET);
+    regval &= ~IIC_ICMR3_NF_MASK;
+    regval |= IIC_ICMR3_NF(CONFIG_RA6M5_IIC0_NF_STAGE);
+    ra6m5_riic_putreg(priv, RA6M5_IIC_ICMR3_OFFSET, regval);
+  #endif  
+  }
+  else if (1 == priv->bus)
+  {
+  #ifndef CONFIG_RA6M5_IIC1_NF
+    regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICFER_OFFSET);
+    regval &= ~IIC_ICFER_NFE;
+    ra6m5_riic_putreg(priv, RA6M5_IIC_ICFER_OFFSET, regval);
+  #else
+    regval  = ra6m5_riic_getreg(priv, RA6M5_IIC_ICMR3_OFFSET);
+    regval &= ~IIC_ICMR3_NF_MASK;
+    regval |= IIC_ICMR3_NF(CONFIG_RA6M5_IIC1_NF_STAGE);
+    ra6m5_riic_putreg(priv, RA6M5_IIC_ICMR3_OFFSET, regval);
+  #endif  
+  }
+  else if (2 == priv->bus)
+  {
+  #ifndef CONFIG_RA6M5_IIC2_NF
+    regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICFER_OFFSET);
+    regval &= ~IIC_ICFER_NFE;
+    ra6m5_riic_putreg(priv, RA6M5_IIC_ICFER_OFFSET, regval);
+  #else
+    regval  = ra6m5_riic_getreg(priv, RA6M5_IIC_ICMR3_OFFSET);
+    regval &= ~IIC_ICMR3_NF_MASK;
+    regval |= IIC_ICMR3_NF(CONFIG_RA6M5_IIC2_NF_STAGE);
+    ra6m5_riic_putreg(priv, RA6M5_IIC_ICMR3_OFFSET, regval);
+  #endif  
+  }
 
   /* Disable all interrupts */
 
-  ra6m5_riic_putreg(priv, RA6M5_IIC_ICIER_OFFSET, 0x00);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICIER_OFFSET, RIIC_REG_INIT);
 
   /* Enable timeout function */
 
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICFER_OFFSET);
   regval |= IIC_ICFER_TMOE;
-  ra6m5_riic_putreg(priv, regval, RA6M5_IIC_ICFER_OFFSET);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICFER_OFFSET, regval);
 
-#ifdef CONFIG_RA6M5_IIC0_SDA_DELAY
-  regval  = ra6m5_riic_getreg(priv, RA6M5_IIC_ICMR2_OFFSET);
-  regval |= IIC_ICMR2_DLCS;
-  regval &= ~IIC_ICMR2_SDDL_MASK; 
-
-  #if 0
-  switch (CONFIG_RA6M5_IIC0_DELAY_CNT)
-    {
-      case 0:
-        regval |= RA6M5_RIIC_ICMR2_SDDL0;
-        break;
-
-      case 1:
-        regval |= RA6M5_RIIC_ICMR2_SDDL1;
-        break;
-
-      case 2:
-        regval |= RA6M5_RIIC_ICMR2_SDDL2;
-        break;
-
-      case 3:
-        regval |= RA6M5_RIIC_ICMR2_SDDL3;
-        break;
-
-      case 4:
-        regval |= RA6M5_RIIC_ICMR2_SDDL4;
-        break;
-
-      case 5:
-        regval |= RA6M5_RIIC_ICMR2_SDDL5;
-        break;
-
-      case 6:
-        regval |= RA6M5_RIIC_ICMR2_SDDL6;
-        break;
-
-      case 7:
-        regval |= RA6M5_RIIC_ICMR2_SDDL7;
-        break;
-    }
-  #else
-  regval |= IIC_ICMR2_SDDL(0);
+  if (0 == priv->bus)
+  {
+  #ifdef CONFIG_RA6M5_IIC0_SDA_DELAY
+    regval  = ra6m5_riic_getreg(priv, RA6M5_IIC_ICMR2_OFFSET);
+    regval |= IIC_ICMR2_DLCS;
+    regval &= ~IIC_ICMR2_SDDL_MASK;
+    regval |= IIC_ICMR2_SDDL(CONFIG_RA6M5_IIC0_DELAY_CNT);
+    ra6m5_riic_putreg(priv, RA6M5_IIC_ICMR2_OFFSET, regval);
   #endif
-
-  ra6m5_riic_putreg(priv, RA6M5_IIC_ICMR2_OFFSET, regval);
-#endif
+  }
+  else if (1 == priv->bus)
+  {
+  #ifdef CONFIG_RA6M5_IIC1_SDA_DELAY
+    regval  = ra6m5_riic_getreg(priv, RA6M5_IIC_ICMR2_OFFSET);
+    regval |= IIC_ICMR2_DLCS;
+    regval &= ~IIC_ICMR2_SDDL_MASK;
+    regval |= IIC_ICMR2_SDDL(CONFIG_RA6M5_IIC1_DELAY_CNT);
+    ra6m5_riic_putreg(priv, RA6M5_IIC_ICMR2_OFFSET, regval);
+  #endif
+  }
+  else if (2 == priv->bus)
+  {
+  #ifdef CONFIG_RA6M5_IIC2_SDA_DELAY
+    regval  = ra6m5_riic_getreg(priv, RA6M5_IIC_ICMR2_OFFSET);
+    regval |= IIC_ICMR2_DLCS;
+    regval &= ~IIC_ICMR2_SDDL_MASK;
+    regval |= IIC_ICMR2_SDDL(CONFIG_RA6M5_IIC2_DELAY_CNT);
+    ra6m5_riic_putreg(priv, RA6M5_IIC_ICMR2_OFFSET, regval);
+  #endif
+  }
 
   ra6m5_iic_irq_init(priv);
 
@@ -821,7 +768,7 @@ static void ra6m5_iic_init(struct ra6m5_i2c_priv_s *priv)
 
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
   regval &= ~(IIC_ICCR1_IICRST);
-  ra6m5_riic_putreg(priv, regval, RA6M5_IIC_ICCR1_OFFSET);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICCR1_OFFSET, regval);
 
   priv->mode = RIIC_READY;
   priv->dev_sts = RIIC_STS_IDLE;
@@ -840,14 +787,6 @@ static void ra6m5_iic_init(struct ra6m5_i2c_priv_s *priv)
 static void ra6m5_iic_set_sending_data(struct ra6m5_i2c_priv_s *priv,
                                         uint8_t data)
 {
-  uint8_t regval;
-
-  /* Clears TIE interrupt request register. */
-
-  regval  = ra6m5_riic_getreg(priv, RA6M5_IIC_ICIER_OFFSET);
-  regval &= ~IIC_ICIER_TIE;
-  ra6m5_riic_putreg(priv, RA6M5_IIC_ICIER_OFFSET, regval);
-
   /* Sets the transmitting data. */
 
   ra6m5_riic_putreg(priv, RA6M5_IIC_ICDRT_OFFSET, data);
@@ -1317,7 +1256,7 @@ static void ra6m5_iic_stopcond(struct ra6m5_i2c_priv_s *priv)
 
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR2_OFFSET);
   regval |= IIC_ICCR2_SP; /* Sets ICCR2.SP bit. */
-  ra6m5_riic_putreg(priv, regval, RA6M5_IIC_ICCR2_OFFSET);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICCR2_OFFSET, regval);
 
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR2_OFFSET);
 }
@@ -1990,13 +1929,13 @@ static int ra6m5_i2c_reset(struct i2c_master_s *dev)
   /* Assert the Internal Reset */
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
   regval |= IIC_ICCR1_IICRST; 
-  ra6m5_riic_putreg(priv, regval, RA6M5_IIC_ICCR1_OFFSET);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICCR1_OFFSET, regval);
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
 
   /* Release the Internal Reset */
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
   regval &= ~(IIC_ICCR1_IICRST);
-  ra6m5_riic_putreg(priv, regval, RA6M5_IIC_ICCR1_OFFSET);
+  ra6m5_riic_putreg(priv, RA6M5_IIC_ICCR1_OFFSET, regval);
   regval = ra6m5_riic_getreg(priv, RA6M5_IIC_ICCR1_OFFSET);
 
   nxmutex_unlock(&priv->lock);
@@ -2019,30 +1958,29 @@ struct i2c_master_s *ra6m5_i2cbus_initialize(int channel)
   /* Get I2C private structure */
 
   i2cinfo("RA6M5 RIIC Bus Initialization:\n");
-  riic_mpc_enable();
+
   switch (channel)
     {
 #ifdef CONFIG_RA6M5_IIC0
       case 0:
-        priv = (struct ra6m5_i2c_priv_s *)&ra6m5_riic0_priv;
+        priv = (struct ra6m5_i2c_priv_s *)&ra6m5_iic0_priv;
         i2cinfo("RA6M5 RIIC0 Channel Initial Setup\n");
         break;
 #endif
 #ifdef CONFIG_RA6M5_IIC1
       case 1:
-        priv = (struct ra6m5_i2c_priv_s *)&ra6m5_riic1_priv;
+        priv = (struct ra6m5_i2c_priv_s *)&ra6m5_iic1_priv;
         i2cinfo("RA6M5 RIIC1 Channel Initial Setup\n");
         break;
 #endif
 #ifdef CONFIG_RA6M5_IIC2
       case 2:
-        priv = (struct ra6m5_i2c_priv_s *)&ra6m5_riic2_priv;
+        priv = (struct ra6m5_i2c_priv_s *)&ra6m5_iic2_priv;
         i2cinfo("RA6M5 RIIC2 Channel Initial Setup\n");
         break;
 #endif
       default:
         i2cerr("Channel %d is not supported by RA6M5\n", channel);
-        riic_mpc_disable();
         return NULL;
     }
 
@@ -2059,7 +1997,6 @@ struct i2c_master_s *ra6m5_i2cbus_initialize(int channel)
       ra6m5_iic_init(priv);
     }
 
-  riic_mpc_disable();
   nxmutex_unlock(&priv->lock);
 
   return (struct i2c_master_s *)priv;

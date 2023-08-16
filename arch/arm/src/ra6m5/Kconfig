@@ -612,12 +612,23 @@ config RA6M5_CAN1
 	bool "CAN1"
 	default n
 
+config RA6M5_RTC
+	bool "RTC"
+	default n
+
+if RA6M5_RTC
+
+config RA6M5_RTC_CARRY
+	bool "Carry Interrupt"
+	default n
+
+endif #RA6M5_RTC
+
 config RA6M5_DTC
 	bool "DTC"
 	default n
 
 if RA6M5_DTC
-
 endif #RA6M5_DTC
 	
 config RA6M5_SCI_SERIALDRIVER

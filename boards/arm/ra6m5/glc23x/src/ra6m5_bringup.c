@@ -34,15 +34,20 @@
 #ifdef CONFIG_RA6M5_SPI
 #  include <nuttx/spi/spi.h>
 #  include <nuttx/mtd/mtd.h>
+#  include "ra6m5_spi.h"
 #endif
 
 #ifdef CONFIG_RA6M5_IIC
 #  include <nuttx/i2c/i2c_master.h>
+#  include "ra6m5_iic.h"
+#endif
+
+#ifdef CONFIG_RA6M5_RTC
+#  include <nuttx/timers/rtc.h>
+#  include "ra6m5_rtc.h"
 #endif
 
 #include "glc23x.h"
-#include "ra6m5_spi.h"
-#include "ra6m5_iic.h"
 
 /* Configuration ************************************************************/
 
@@ -72,6 +77,49 @@
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
+
+/****************************************************************************
+ * Private Functions
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: rtc_driver_initialize
+ *
+ * Description:
+ *   Initialize and register the RTC driver.
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_RA6M5_RTC
+static int rtc_driver_initialize(void)
+{
+  struct rtc_lowerhalf_s *lower;
+  int ret;
+
+  /* Instantiate the ra6m5 lower-half RTC driver */
+
+  lower = ra6m5_rtc_lowerhalf();
+  if (lower == NULL)
+    {
+      serr("ERROR: Failed to instantiate the RTC lower-half driver\n");
+      ret = -ENOMEM;
+    }
+  else
+    {
+      /* Bind the lower half driver and register the combined RTC driver
+       * as /dev/rtc0
+       */
+
+      ret = rtc_initialize(0, lower);
+      if (ret < 0)
+        {
+          serr("ERROR: Failed to bind/register the RTC driver: %d\n", ret);
+        }
+    }
+
+  return ret;
+}
+#endif /* CONFIG_RA6M5_RTC */
 
 /****************************************************************************
  * Public Functions
@@ -171,6 +219,14 @@ int ra6m5_bringup(void)
     }
 #endif
 #endif /* CONFIG_RA6M5_IIC */
+
+#ifdef CONFIG_RA6M5_RTC
+  ret = rtc_driver_initialize();
+  if (ret < 0)
+    {
+      rtcerr("ERROR: rtc_driver_initialize failed: %d\n", ret);
+    }
+#endif /* CONFIG_RA6M5_RTC */
 
 #ifdef CONFIG_FS_PROCFS
   /* Mount the procfs file system */
