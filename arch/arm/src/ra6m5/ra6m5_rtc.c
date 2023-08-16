@@ -1252,8 +1252,28 @@ int ra6m5_rtc_cancelalarm(void)
 {
   irqstate_t flags;
   int ret = -ENODATA;
+  uint8_t regval;
 
   flags = enter_critical_section();
+
+  /* Disable ICU alarm interrupt */
+
+  up_disable_irq(RA6M5_IRQ_RTC_ALARM);
+
+  /* Disable RTC periodic interrupt */
+
+  regval = ra6m5_rtc_getreg(RA6M5_RTC_RCR1_OFFSET);
+  regval &= ~RTC_RCR1_AIE;
+  ra6m5_rtc_putreg(RA6M5_RTC_RCR1_OFFSET, regval);
+
+  while (ra6m5_rtc_getreg(RA6M5_RTC_RCR1_OFFSET) & RTC_RCR1_AIE)
+    {
+      /* Wait for this write to complete. */
+    }
+
+  /* Clear IRQ flag of ALARM interrupt */
+
+  up_clear_irq(RA6M5_IRQ_RTC_ALARM);
 
   /* Cancel the global callback function */
 
@@ -1287,10 +1307,6 @@ int ra6m5_rtc_cancelperiodic(void)
 
   up_disable_irq(RA6M5_IRQ_RTC_PERIOD);
 
-  /* Clear IRQ flag of periodic interrupt */
-
-  up_clear_irq(RA6M5_IRQ_RTC_PERIOD);
-
   /* Disable RTC periodic interrupt */
 
   regval = ra6m5_rtc_getreg(RA6M5_RTC_RCR1_OFFSET);
@@ -1301,6 +1317,10 @@ int ra6m5_rtc_cancelperiodic(void)
     {
       /* Wait for this write to complete. */
     }
+
+  /* Clear IRQ flag of periodic interrupt */
+
+  up_clear_irq(RA6M5_IRQ_RTC_PERIOD);
 
   return OK;
 }
@@ -1313,10 +1333,6 @@ int ra6m5_rtc_cancelcarry(void)
 {
   uint8_t regval;
 
-  /* Clear IRQ flag of carry interrupt */
-
-  up_clear_irq(RA6M5_IRQ_RTC_CARRY);
-
   /* Disable ICU carry interrupt */
 
   up_disable_irq(RA6M5_IRQ_RTC_CARRY);
@@ -1326,6 +1342,15 @@ int ra6m5_rtc_cancelcarry(void)
   regval = ra6m5_rtc_getreg(RA6M5_RTC_RCR1_OFFSET);
   regval &= ~RTC_RCR1_CIE;
   ra6m5_rtc_putreg(RA6M5_RTC_RCR1_OFFSET, regval);
+
+  while (ra6m5_rtc_getreg(RA6M5_RTC_RCR1_OFFSET) & RTC_RCR1_CIE)
+    {
+      /* Wait for this write to complete. */
+    }
+
+  /* Clear IRQ flag of carry interrupt */
+
+  up_clear_irq(RA6M5_IRQ_RTC_CARRY);
 
   return OK;
 }

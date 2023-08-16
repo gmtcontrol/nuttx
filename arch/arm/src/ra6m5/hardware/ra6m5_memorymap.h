@@ -38,9 +38,9 @@
 
 /* System Memory Addresses **************************************************/
 
-#define RA6M5_SYSMEM_UID        0x00000000  /* The 96-bit unique device identifier */
-#define RA6M5_SYSMEM_FSIZE      0x00000000  /* Size of Flash memory in Kbytes. */
-#define RA6M5_SYSMEM_PACKAGE    0x00000000  /* Indicates the device's package type. */
+#define RA6M5_SYSMEM_UID        0x01008190  /* The 128-bit unique device identifier (16-byte) */
+#define RA6M5_SYSMEM_PNR        0x010080F0  /* Part Numbering (16-byte) */
+#define RA6M5_SYSMEM_VER        0x010081B0  /* MCU Version (1-byte) */
 
 /* Peripheral Base Addresses ************************************************/
 

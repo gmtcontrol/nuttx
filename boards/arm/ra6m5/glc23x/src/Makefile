@@ -31,6 +31,10 @@ ifeq ($(CONFIG_ARCH_BOARD_RA6M5_CUSTOM_CLOCKCONFIG),y)
 CSRCS += ra6m5_clockconfig.c
 endif
 
+ifeq ($(CONFIG_BOARDCTL_RESET),y)
+CSRCS += ra6m5_reset.c
+endif
+
 ifeq ($(CONFIG_MTD_W25),y)
 CSRCS += ra6m5_w25.c
 endif

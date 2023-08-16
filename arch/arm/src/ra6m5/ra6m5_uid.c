@@ -33,11 +33,11 @@
  * Public Functions
  ****************************************************************************/
 
-void ra6m5_get_uniqueid(uint8_t uniqueid[12])
+void ra6m5_get_uniqueid(uint8_t uniqueid[16])
 {
   int i;
 
-  for (i = 0; i < 12; i++)
+  for (i = 0; i < 16; i++)
     {
       uniqueid[i] = *((uint8_t *)(RA6M5_SYSMEM_UID) + i);
     }
