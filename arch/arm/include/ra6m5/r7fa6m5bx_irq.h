@@ -315,8 +315,25 @@
 #  define RA6M5_IRQ_RTC_ALARM   (RA6M5_RTC_IRQBASE + 0) /* RTC Alarm interrupt */
 #  define RA6M5_IRQ_RTC_PERIOD  (RA6M5_RTC_IRQBASE + 1) /* RTC Periodic interrupt */
 #  define RA6M5_IRQ_RTC_CARRY   (RA6M5_RTC_IRQBASE + 2) /* RTC Carry interrupt */
+#  define RA6M5_USBFS_IRQBASE   (RA6M5_DTC_IRQBASE + 3)
 #else 
+#  define RA6M5_USBFS_IRQBASE   (RA6M5_RTC_IRQBASE)
+#endif
 
+#ifdef CONFIG_RA6M5_USBFS
+#  ifdef CONFIG_USBDEV_DMA
+#    define RA6M5_IRQ_USBFS_FIFO0   (RA6M5_USBFS_IRQBASE + 0)   /* DMA transfer request 0 */
+#    define RA6M5_IRQ_USBFS_FIFO1   (RA6M5_USBFS_IRQBASE + 1)   /* DMA transfer request 1 */
+#    define RA6M5_IRQ_USBFS_INT     (RA6M5_USBFS_IRQBASE + 2)   /* USBFS interrupt */
+#    define RA6M5_IRQ_USBFS_RSM     (RA6M5_USBFS_IRQBASE + 3)   /* USBFS resume interrupt */
+#    define RA6M5_USBHS_IRQBASE     (RA6M5_USBFS_IRQBASE + 4)
+#  else
+#    define RA6M5_IRQ_USBFS_INT     (RA6M5_USBFS_IRQBASE + 0)   /* USBFS interrupt */
+#    define RA6M5_IRQ_USBFS_RSM     (RA6M5_USBFS_IRQBASE + 1)   /* USBFS resume interrupt */
+#    define RA6M5_USBHS_IRQBASE     (RA6M5_USBFS_IRQBASE + 2)
+#  endif
+#else 
+#  define RA6M5_USBHS_IRQBASE   (RA6M5_USBFS_IRQBASE)
 #endif
 
 #if defined(CONFIG_RA6M5_R7FA6M5BX)

@@ -82,7 +82,7 @@ void ra6m5_spidev_initialize(void);
 #endif
 
 /****************************************************************************
- * Name: stm32_w25initialize
+ * Name: ra6m5_w25initialize
  *
  * Description:
  *   Initialize and register the W25 FLASH file system.
@@ -91,6 +91,19 @@ void ra6m5_spidev_initialize(void);
 
 #ifdef CONFIG_MTD_W25
 int ra6m5_w25initialize(int minor);
+#endif
+
+/****************************************************************************
+ * Name: ra6m5_usbinitialize
+ *
+ * Description:
+ *   Called from ra6m5_usbinitialize very early in initialization to setup
+ *   USB-related GPIO pins for the GLC23X PLC.
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_RA6M5_USBFS
+void ra6m5_usbinitialize(void);
 #endif
 
 /****************************************************************************

@@ -302,46 +302,66 @@
 #  undef CONFIG_SCI9_RXDMA
 #endif
 
-/* Disable the DMA configuration on all unused SCIs */
+/* Disable the DMA/DTC configuration on all unused SCIs */
 
 #ifndef CONFIG_RA6M5_SCI0_UART
 #  undef CONFIG_SCI0_RXDMA
+#  undef CONFIG_SCI0_RXDTC
+#  undef CONFIG_SCI0_TXDTC
 #endif
 
 #ifndef CONFIG_RA6M5_SCI1_UART
 #  undef CONFIG_SCI1_RXDMA
+#  undef CONFIG_SCI1_RXDTC
+#  undef CONFIG_SCI1_TXDTC
 #endif
 
 #ifndef CONFIG_RA6M5_SCI2_UART
 #  undef CONFIG_SCI2_RXDMA
+#  undef CONFIG_SCI2_RXDTC
+#  undef CONFIG_SCI2_TXDTC
 #endif
 
 #ifndef CONFIG_RA6M5_SCI3_UART
 #  undef CONFIG_SCI3_RXDMA
+#  undef CONFIG_SCI3_RXDTC
+#  undef CONFIG_SCI3_TXDTC
 #endif
 
 #ifndef CONFIG_RA6M5_SCI4_UART
 #  undef CONFIG_SCI4_RXDMA
+#  undef CONFIG_SCI4_RXDTC
+#  undef CONFIG_SCI4_TXDTC
 #endif
 
 #ifndef CONFIG_RA6M5_SCI5_UART
 #  undef CONFIG_SCI5_RXDMA
+#  undef CONFIG_SCI5_RXDTC
+#  undef CONFIG_SCI5_TXDTC
 #endif
 
 #ifndef CONFIG_RA6M5_SCI6_UART
 #  undef CONFIG_SCI6_RXDMA
+#  undef CONFIG_SCI6_RXDTC
+#  undef CONFIG_SCI6_TXDTC
 #endif
 
 #ifndef CONFIG_RA6M5_SCI7_UART
 #  undef CONFIG_SCI7_RXDMA
+#  undef CONFIG_SCI7_RXDTC
+#  undef CONFIG_SCI7_TXDTC
 #endif
 
 #ifndef CONFIG_RA6M5_SCI8_UART
 #  undef CONFIG_SCI8_RXDMA
+#  undef CONFIG_SCI8_RXDTC
+#  undef CONFIG_SCI8_TXDTC
 #endif
 
 #ifndef CONFIG_RA6M5_SCI9_UART
 #  undef CONFIG_SCI9_RXDMA
+#  undef CONFIG_SCI9_RXDTC
+#  undef CONFIG_SCI9_TXDTC
 #endif
 
 
@@ -404,6 +424,100 @@
 #  undef SERIAL_HAVE_ONLY_DMA
 #elif defined(CONFIG_RA6M5_SCI9_UART) && !defined(CONFIG_SCI9_RXDMA)
 #  undef SERIAL_HAVE_ONLY_DMA
+#endif
+
+/* DTC support is only provided if CONFIG_ARCH_DTC is in the NuttX
+ * configuration
+ */
+
+#if !defined(HAVE_UART) || !defined(CONFIG_ARCH_DTC)
+#  undef CONFIG_SCI0_RXDTC
+#  undef CONFIG_SCI1_RXDTC
+#  undef CONFIG_SCI2_RXDTC
+#  undef CONFIG_SCI3_RXDTC
+#  undef CONFIG_SCI4_RXDTC
+#  undef CONFIG_SCI5_RXDTC
+#  undef CONFIG_SCI6_RXDTC
+#  undef CONFIG_SCI7_RXDTC
+#  undef CONFIG_SCI8_RXDTC
+#  undef CONFIG_SCI9_RXDTC
+#  undef CONFIG_SCI0_TXDTC
+#  undef CONFIG_SCI1_TXDTC
+#  undef CONFIG_SCI2_TXDTC
+#  undef CONFIG_SCI3_TXDTC
+#  undef CONFIG_SCI4_TXDTC
+#  undef CONFIG_SCI5_TXDTC
+#  undef CONFIG_SCI6_TXDTC
+#  undef CONFIG_SCI7_TXDTC
+#  undef CONFIG_SCI8_TXDTC
+#  undef CONFIG_SCI9_TXDTC
+#endif
+
+/* Is DTC available on any (enabled) SCI? */
+
+#undef SERIAL_HAVE_DTC
+#if defined(CONFIG_SCI0_RXDTC) || defined(CONFIG_SCI1_RXDTC) || \
+    defined(CONFIG_SCI2_RXDTC) || defined(CONFIG_SCI3_RXDTC) || \
+    defined(CONFIG_SCI4_RXDTC) || defined(CONFIG_SCI5_RXDTC) || \
+    defined(CONFIG_SCI6_RXDTC) || defined(CONFIG_SCI7_RXDTC) || \
+    defined(CONFIG_SCI8_RXDTC) || defined(CONFIG_SCI9_RXDTC) || \
+	defined(CONFIG_SCI0_TXDTC) || defined(CONFIG_SCI1_TXDTC) || \
+    defined(CONFIG_SCI2_TXDTC) || defined(CONFIG_SCI3_TXDTC) || \
+    defined(CONFIG_SCI4_TXDTC) || defined(CONFIG_SCI5_TXDTC) || \
+    defined(CONFIG_SCI6_TXDTC) || defined(CONFIG_SCI7_TXDTC) || \
+    defined(CONFIG_SCI8_TXDTC) || defined(CONFIG_SCI9_TXDTC)
+#  define SERIAL_HAVE_DTC 1
+#endif
+
+/* Is DTC used on the console UART? */
+
+#undef SERIAL_HAVE_CONSOLE_DTC
+#if defined(CONFIG_SCI0_SERIAL_CONSOLE) && (defined(CONFIG_SCI0_RXDTC) || defined(CONFIG_SCI0_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#elif defined(CONFIG_SCI1_SERIAL_CONSOLE) && (defined(CONFIG_SCI1_RXDTC) || defined(CONFIG_SCI1_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#elif defined(CONFIG_SCI2_SERIAL_CONSOLE) && (defined(CONFIG_SCI2_RXDTC) || defined(CONFIG_SCI2_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#elif defined(CONFIG_SCI3_SERIAL_CONSOLE) && (defined(CONFIG_SCI3_RXDTC) || defined(CONFIG_SCI3_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#elif defined(CONFIG_SCI4_SERIAL_CONSOLE) && (defined(CONFIG_SCI4_RXDTC) || defined(CONFIG_SCI4_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#elif defined(CONFIG_SCI5_SERIAL_CONSOLE) && (defined(CONFIG_SCI5_RXDTC) || defined(CONFIG_SCI5_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#elif defined(CONFIG_SCI6_SERIAL_CONSOLE) && (defined(CONFIG_SCI6_RXDTC) || defined(CONFIG_SCI6_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#elif defined(CONFIG_SCI7_SERIAL_CONSOLE) && (defined(CONFIG_SCI7_RXDTC) || defined(CONFIG_SCI7_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#elif defined(CONFIG_SCI8_SERIAL_CONSOLE) && (defined(CONFIG_SCI8_RXDTC) || defined(CONFIG_SCI8_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#elif defined(CONFIG_SCI9_SERIAL_CONSOLE) && (defined(CONFIG_SCI9_RXDTC) || defined(CONFIG_SCI9_TXDTC))
+#  define SERIAL_HAVE_CONSOLE_DTC 1
+#endif
+
+
+/* Is DTC used on all (enabled) SCIs */
+
+#define SERIAL_HAVE_ONLY_DTC 1
+#if defined(CONFIG_RA6M5_SCI0_UART) && (!defined(CONFIG_SCI0_RXDTC) && !defined(CONFIG_SCI0_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
+#elif defined(CONFIG_RA6M5_SCI1_UART) && (!defined(CONFIG_SCI1_RXDTC) && !defined(CONFIG_SCI1_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
+#elif defined(CONFIG_RA6M5_SCI2_UART) && (!defined(CONFIG_SCI2_RXDTC) && !defined(CONFIG_SCI2_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
+#elif defined(CONFIG_RA6M5_SCI3_UART) && (!defined(CONFIG_SCI3_RXDTC) && !defined(CONFIG_SCI3_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
+#elif defined(CONFIG_RA6M5_SCI4_UART) && (!defined(CONFIG_SCI4_RXDTC) && !defined(CONFIG_SCI4_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
+#elif defined(CONFIG_RA6M5_SCI5_UART) && (!defined(CONFIG_SCI5_RXDTC) && !defined(CONFIG_SCI5_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
+#elif defined(CONFIG_RA6M5_SCI6_UART) && (!defined(CONFIG_SCI6_RXDTC) && !defined(CONFIG_SCI6_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
+#elif defined(CONFIG_RA6M5_SCI7_UART) && (!defined(CONFIG_SCI7_RXDTC) && !defined(CONFIG_SCI7_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
+#elif defined(CONFIG_RA6M5_SCI8_UART) && (!defined(CONFIG_SCI8_RXDTC) && !defined(CONFIG_SCI8_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
+#elif defined(CONFIG_RA6M5_SCI9_UART) && (!defined(CONFIG_SCI9_RXDTC) && !defined(CONFIG_SCI9_TXDTC))
+#  undef SERIAL_HAVE_ONLY_DTC
 #endif
 
 /* Is RS-485 used? */

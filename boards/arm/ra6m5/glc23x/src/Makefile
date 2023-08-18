@@ -39,4 +39,8 @@ ifeq ($(CONFIG_MTD_W25),y)
 CSRCS += ra6m5_w25.c
 endif
 
+ifeq ($(CONFIG_USBDEV),y)
+CSRCS += ra6m5_usbdev.c
+endif
+
 include $(TOPDIR)/boards/Board.mk

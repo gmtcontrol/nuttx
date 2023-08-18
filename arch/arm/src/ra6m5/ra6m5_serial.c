@@ -52,6 +52,9 @@
 #ifdef SERIAL_HAVE_DMA
 #  include "ra6m5_dma.h"
 #endif
+#ifdef SERIAL_HAVE_DTC
+#  include "ra6m5_dtc.h"
+#endif
 #include "ra6m5_rcc.h"
 #include "arm_internal.h"
 
@@ -128,6 +131,11 @@ struct ra6m5_serial_s
 
 #ifdef SERIAL_HAVE_DMA
   const unsigned int rxdma_channel; /* DMA channel assigned */
+#endif
+
+#ifdef SERIAL_HAVE_DTC
+  const dtc_static_transfer_data_cfg_t *txdtc_config;
+  const dtc_static_transfer_data_cfg_t *rxdtc_config;
 #endif
 
   /* RX DMA state */
@@ -880,6 +888,33 @@ static struct ra6m5_serial_s g_sci7priv =
 /* This describes the state of the RA6M5 SCI8 port. */
 
 #ifdef CONFIG_RA6M5_SCI8_UART
+
+#if defined(CONFIG_SCI8_TXDTC)
+dtc_static_transfer_data_cfg_t g_sci8_txcfg =
+{
+#if CONFIG_RA6M5_SCI8_BUF_SIZE > 1
+  .transfer_mode          = DTC_TRANSFER_MODE_BLOCK,
+#else
+  .transfer_mode          = DTC_TRANSFER_MODE_NORMAL,
+#endif
+  .data_size              = DTC_DATA_SIZE_BYTE,
+  .src_addr_mode          = DTC_SRC_ADDR_INCR,
+  .chain_transfer_enable  = DTC_CHAIN_TRANSFER_DISABLE,
+  .chain_transfer_mode    = DTC_CHAIN_TRANSFER_CONTINUOUSLY,
+  .response_interrupt     = DTC_INTERRUPT_AFTER_ALL_COMPLETE,
+  .repeat_block_side      = DTC_REPEAT_BLOCK_DESTINATION,
+  .dest_addr_mode         = DTC_DES_ADDR_FIXED,
+  .source_addr            = 0,                          /* This will set dynamically */
+  .dest_addr              = 0,                          /* Set data register address */
+  .transfer_count         = 0,                          /* This will set dynamically */
+#if CONFIG_RA6M5_SCI8_BUF_SIZE > 1
+  .block_size             = CONFIG_RA6M5_RSPI_BUF_SIZE, /* Looks like tx fifo size */
+#else
+  .block_size             = 0,
+#endif
+};
+#endif
+
 static struct ra6m5_serial_s g_sci8priv =
 {
   .dev =

@@ -347,5 +347,6 @@ typedef enum e_elc_event_ra6m5
 /* Register Bitfield Definitions ********************************************/
 
 #define ICU_IELSR_IR                (1 << 16)   /* Bit 16: Interrupt Status Flag */
+#define ICU_IELSR_DTCE              (1 << 24)   /* Bit 24: DTC Activation Enable */
 
 #endif /* __ARCH_ARM_SRC_RA6M5_HARDWARE_R7FA6M5BXICU_H */

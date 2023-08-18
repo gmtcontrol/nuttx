@@ -98,6 +98,10 @@
 #define GPIO_IIC1_SDA           GPIO_IIC1_SDA_1                     /* P206   */
 #define GPIO_IIC1_SCL           GPIO_IIC1_SCL_1                     /* P205   */
 
+/* USBFS: VBUS Connected to P407 */
+
+#define GPIO_OTGFS_VBUS         GPIO_USBFS_VBUS_1                   /* P407   */
+
 /****************************************************************************
  * Public Data
  ****************************************************************************/

@@ -136,7 +136,6 @@ void __start(void)
     {
       *dest++ = 0;
     }
-  showprogress('A');
 
   /* Move the initialized data section from his temporary holding spot in
    * FLASH into the correct place in SRAM.  The correct place in SRAM is
@@ -150,7 +149,6 @@ void __start(void)
     {
       *dest++ = *src++;
     }
-  showprogress('B');
 
   /* Configure the clocks */
 
@@ -167,13 +165,13 @@ void __start(void)
   /* Configure the UART so that we can get debug output as soon as possible */
 
   ra6m5_lowsetup();
-  showprogress('C');
+  showprogress('A');
 
   /* Enable I- and D-Caches */
 
   up_enable_icache();
   up_enable_dcache();
-  showprogress('D');
+  showprogress('B');
 
 #ifdef CONFIG_SCHED_IRQMONITOR
   up_perf_init((void *)g_clock_freq[RA6M5_CLOCKS_SOURCE_SYSYEM]);
@@ -184,7 +182,7 @@ void __start(void)
 #ifdef USE_EARLYSERIALINIT
   arm_earlyserialinit();
 #endif
-  showprogress('E');
+  showprogress('C');
 
   /* For the case of the separate user-/kernel-space build, perform whatever
    * platform specific initialization of the user memory is required.
@@ -194,13 +192,13 @@ void __start(void)
 
 #ifdef CONFIG_BUILD_PROTECTED
   ra6m5_userspace();
-  showprogress('F');
+  showprogress('D');
 #endif
 
   /* Initialize onboard resources */
 
   ra6m5_board_initialize();
-  showprogress('G');
+  showprogress('E');
 
   /* Then start NuttX */
 

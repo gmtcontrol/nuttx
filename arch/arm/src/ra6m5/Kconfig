@@ -293,10 +293,6 @@ config RA6M5_SSI
 	bool
 	default n
 	
-config RA6M5_USBFS
-	bool
-	default n
-	
 config RA6M5_OSPI
 	bool
 	default n
@@ -398,6 +394,10 @@ config RA6M5_WDT
 	bool "WDT"
 	default n
 
+config RA6M5_USBFS
+	bool "USBFS"
+	default n
+	
 config RA6M5_SPI0
 	bool "SPI0"
 	default n

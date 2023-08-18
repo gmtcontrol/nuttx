@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/arm/ra6m5/glc23x/src/ra6m5_boot.c
+ * boards/arm/stm32f7/nucleo-144/src/ra6m5_reset.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -24,77 +24,59 @@
 
 #include <nuttx/config.h>
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <errno.h>
 #include <debug.h>
 
-#include <nuttx/board.h>
+#include <nuttx/usb/usbdev.h>
 
 #include "arm_internal.h"
-#include "glc23x.h"
+#include "chip.h"
 
+#include "glc23x.h"
 #include <arch/board/board.h>
+
+#ifdef CONFIG_RA6M5_USBFS
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: ra6m5_board_initialize
+ * Name: ra6m5_usbinitialize
  *
  * Description:
- *   All RA6M5 architectures must provide the following entry point.  This
- *   entry point is called early in the initialization -- after all memory
- *   has been configured and mapped but before any devices have been
- *   initialized.
+ *   Called to setup USB-related GPIO pins.
  *
  ****************************************************************************/
 
-void ra6m5_board_initialize(void)
+void ra6m5_usbinitialize(void)
 {
-#ifdef CONFIG_ARCH_LEDS
-  /* Configure on-board LEDs if LED support has been selected. */
+  uinfo("called\n");
 
-#endif
+  /* USB VBUS pin configuration */
 
-#ifdef CONFIG_ARCH_BUTTONS
-  /* Configure on-board buttons. */
-
-#endif
-
-#ifdef CONFIG_SPI
-  /* Configure SPI chip selects */
-
-  ra6m5_spidev_initialize();
-#endif
-
-#if defined(CONFIG_USBDEV) && defined(CONFIG_RA6M5_USBFS)
-  /* Initialize USB is 1) USBDEV is selected, 2) the USB controller is not
-   * disabled, and 3) the weak function ra6m5_usbinitialize() has been
-   * brought into the build.
-   */
-
-  ra6m5_usbinitialize();
+#ifdef GPIO_OTGFS_VBUS
+  ra6m5_configgpio(GPIO_OTGFS_VBUS);
 #endif
 }
 
 /****************************************************************************
- * Name: board_late_initialize
+ * Name:  ra6m5_usbsuspend
  *
  * Description:
- *   If CONFIG_BOARD_LATE_INITIALIZE is selected, then an additional
- *   initialization call will be performed in the boot-up sequence to a
- *   function called board_late_initialize().  board_late_initialize() will
- *   be called immediately after up_initialize() is called and just before
- *   the initial application is started.  This additional initialization
- *   phase may be used, for example, to initialize board-specific device
- *   drivers.
+ *   Board logic must provide the ra6m5_usbsuspend logic if the USBDEV
+ *   driver is used.  This function is called whenever the USB enters or
+ *   leaves suspend mode.
+ *   This is an opportunity for the board logic to shutdown clocks, power,
+ *   etc. while the USB is suspended.
  *
  ****************************************************************************/
 
-#ifdef CONFIG_BOARD_LATE_INITIALIZE
-void board_late_initialize(void)
+void ra6m5_usbsuspend(struct usbdev_s *dev, bool resume)
 {
-  /* Perform board-specific initialization here if so configured */
-
-  ra6m5_bringup();
+  uinfo("resume: %d\n", resume);
 }
-#endif
+
+#endif /* CONFIG_RA6M5_USBFS */

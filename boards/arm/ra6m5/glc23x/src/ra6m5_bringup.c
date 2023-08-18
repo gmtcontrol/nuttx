@@ -31,6 +31,10 @@
 #include <nuttx/board.h>
 #include <nuttx/fs/fs.h>
 
+#ifdef CONFIG_CDCACM
+#  include <nuttx/usb/cdcacm.h>
+#endif
+
 #ifdef CONFIG_RA6M5_SPI
 #  include <nuttx/spi/spi.h>
 #  include <nuttx/mtd/mtd.h>
@@ -45,6 +49,10 @@
 #ifdef CONFIG_RA6M5_RTC
 #  include <nuttx/timers/rtc.h>
 #  include "ra6m5_rtc.h"
+#endif
+
+#ifdef CONFIG_RA6M5_RTC
+#  include "ra6m5_dtc.h"
 #endif
 
 #include "glc23x.h"
@@ -237,6 +245,28 @@ int ra6m5_bringup(void)
       ferr("ERROR: Failed to mount procfs at /proc: %d\n", ret);
     }
 #endif
+
+#ifdef CONFIG_RA6M5_DTC
+  /* Initialize DTC */
+
+  ra6m5_dtc_initialize();
+#endif /* CONFIG_RA6M5_DTC */
+
+#if defined(CONFIG_USBHOST)
+  ret = nsh_usbhostinitialize();
+#endif
+
+#if defined(CONFIG_CDCACM) && !defined(CONFIG_CDCACM_CONSOLE)
+  /* Initialize CDCACM */
+
+  syslog(LOG_INFO, "Initialize CDCACM device\n");
+
+  ret = cdcacm_initialize(0, NULL);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: cdcacm_initialize failed: %d\n", ret);
+    }
+#endif /* CONFIG_CDCACM & !CONFIG_CDCACM_CONSOLE */
 
   UNUSED(ret);
   return OK;

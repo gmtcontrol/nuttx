@@ -35,6 +35,60 @@
 #define RA6M5_DTC_DTCVBR_SEC_OFFSET     0x0014  /* DTC Vector Base Register for secure Region */
 #define RA6M5_DTC_DTEVR_SEC_OFFSET      0x0020  /* DTC Error Vector Register */
 
+/* These registers inaccessible directly from the CPU */
+/* Base address: DTCVBR */
+
+#define RA6M5_DTC_MRA_OFFSET            0x0003  /*  DTC Mode Register A (4 × Vector number) */
+#define RA6M5_DTC_MRB_OFFSET            0x0002  /*  DTC Mode Register B (4 × Vector number) */
+#define RA6M5_DTC_SAR_OFFSET            0x0004  /*  DTC Transfer Source Register (4 × Vector number) */
+#define RA6M5_DTC_DAR_OFFSET            0x0008  /*  DTC Transfer Destination Register (4 × Vector number) */
+#define RA6M5_DTC_CRA_OFFSET            0x000E  /*  DTC Transfer Count Register A (4 × Vector number) */
+#define RA6M5_DTC_CRB_OFFSET            0x000C  /*  DTC Transfer Count Register B (4 × Vector number) */
+
+#define RA6M5_DTC_MRA(vector)           (getreg32(RA6M5_DTC_BASE + RA6M5_DTC_DTCVBR_OFFSET) + (RA6M5_DTC_MRA_OFFSET + (4 * (vector))))
+#define RA6M5_DTC_MRB(vector)           (getreg32(RA6M5_DTC_BASE + RA6M5_DTC_DTCVBR_OFFSET) + (RA6M5_DTC_MRB_OFFSET + (4 * (vector))))
+#define RA6M5_DTC_SAR(vector)           (getreg32(RA6M5_DTC_BASE + RA6M5_DTC_DTCVBR_OFFSET) + (RA6M5_DTC_SAR_OFFSET + (4 * (vector))))
+#define RA6M5_DTC_DAR(vector)           (getreg32(RA6M5_DTC_BASE + RA6M5_DTC_DTCVBR_OFFSET) + (RA6M5_DTC_DAR_OFFSET + (4 * (vector))))
+#define RA6M5_DTC_CRA(vector)           (getreg32(RA6M5_DTC_BASE + RA6M5_DTC_DTCVBR_OFFSET) + (RA6M5_DTC_CRA_OFFSET + (4 * (vector))))
+#define RA6M5_DTC_CRB(vector)           (getreg32(RA6M5_DTC_BASE + RA6M5_DTC_DTCVBR_OFFSET) + (RA6M5_DTC_CRB_OFFSET + (4 * (vector))))
+
 /* Register Bitfield Definitions ********************************************/
+
+/*  DTC Mode Register A */
+
+#define DTC_MRA_SM_SHIFT                (2)         /* Bits [2:3]: Transfer Source Address Addressing Mode */
+#define DTC_MRA_SM_MASK                 (3 << DTC_MRA_SM_SHIFT)
+#  define DTC_MRA_SM(n)                 (((n) << DTC_MRA_SM_SHIFT) & DTC_MRA_SM_MASK)
+#define DTC_MRA_SZ_SHIFT                (4)         /* Bits [4:5]: DTC Data Transfer Size */
+#define DTC_MRA_SZ_MASK                 (3 << DTC_MRA_SZ_SHIFT)
+#  define DTC_MRA_SZ(n)                 (((n) << DTC_MRA_SZ_SHIFT) & DTC_MRA_SZ_MASK)
+#define DTC_MRA_MD_SHIFT                (6)         /* Bits [6:7]: DTC Transfer Mode Select */
+#define DTC_MRA_MD_MASK                 (3 << DTC_MRA_MD_SHIFT)
+#  define DTC_MRA_MD(n)                 (((n) << DTC_MRA_MD_SHIFT) & DTC_MRA_MD_MASK)
+
+/*  DTC Mode Register B */
+
+#define DTC_MRB_DM_SHIFT                (2)         /* Bits [2:3]: Transfer Destination Address Addressing Mode */
+#define DTC_MRB_DM_MASK                 (3 << DTC_MRB_DM_SHIFT)
+#  define DTC_MRB_DM(n)                 (((n) << DTC_MRB_DM_SHIFT) & DTC_MRB_DM_MASK)
+#define DTC_MRB_DTS                     (1 << 4)    /* Bit 4: DTC Transfer Mode Select */
+#define DTC_MRB_DISEL                   (1 << 5)    /* Bit 5: DTC Interrupt Select */
+#define DTC_MRB_CHNS                    (1 << 6)    /* Bit 6: DTC Chain Transfer Select */
+#define DTC_MRB_CHNE                    (1 << 7)    /* Bit 7: DTC Chain Transfer Enable */
+
+/*  DTC Control Register */
+
+#define DTC_DTCCR_RRS                   (1 << 4)    /* Bit 4: DTC Transfer Information Read Skip Enable */
+
+/*  DTC Module Start Register */
+
+#define DTC_DTCST_START                 (1 << 0)    /* Bit 0: DTC Module Start */
+
+/*  DTC Module Start Register */
+
+#define DTC_DTCSTS_VECN_SHIFT           (0)         /* Bits [0:7]: DTC-Activating Vector Number Monitoring */
+#define DTC_DTCSTS_VECN_MASK            (255 << DTC_DTCSTS_VECN_SHIFT)
+#  define DTC_DTCSTS_VECN(n)            (((n) << DTC_DTCSTS_VECN_SHIFT) & DTC_DTCSTS_VECN_MASK)
+#define DTC_DTCSTS_ACT                  (1 << 15)   /* Bit 15: DTC Active Flag */
 
 #endif /* __ARCH_ARM_SRC_RA6M5_HARDWARE_RA6M5_DTC_H */

@@ -87,6 +87,12 @@ int board_app_initialize(uintptr_t arg)
 #ifdef CONFIG_BOARDCTL_IOCTL
 int board_ioctl(unsigned int cmd, uintptr_t arg)
 {
+  switch (cmd)
+  {
+    case BOARDIOC_MKRD:
+      break;
+  }
+
   return -ENOTTY;
 }
 #endif

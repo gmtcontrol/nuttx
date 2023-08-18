@@ -243,6 +243,20 @@ static const uint32_t g_interrupt_event_link_select[RA6M5_IRQ_NEXTINTS] =
 #ifdef RA6M5_IRQ_RTC_CARRY
   ELC_EVENT_RTC_CARRY,
 #endif
+#ifdef CONFIG_USBDEV_DMA
+#ifdef RA6M5_IRQ_USBFS_FIFO0
+  ELC_EVENT_USBFS_FIFO_0,
+#endif
+#ifdef RA6M5_IRQ_USBFS_FIFO1
+  ELC_EVENT_USBFS_FIFO_1,
+#endif
+#endif
+#ifdef RA6M5_IRQ_USBFS_INT
+  ELC_EVENT_USBFS_INT,
+#endif
+#ifdef RA6M5_IRQ_USBFS_RSM
+  ELC_EVENT_USBFS_RESUME,
+#endif
 };
 
 /****************************************************************************

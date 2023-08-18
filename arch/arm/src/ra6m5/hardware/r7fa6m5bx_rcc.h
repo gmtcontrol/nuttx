@@ -209,9 +209,10 @@
 
 /* Module Stop Control Register B */
 
-#define MSTP_MSTPCRB_MSTPB29        (1 << 29)   /* Bit 29: Serial Communication Interface 2 Module Stop */
-#define MSTP_MSTPCRB_MSTPB30        (1 << 30)   /* Bit 30: Serial Communication Interface 1 Module Stop */
-#define MSTP_MSTPCRB_MSTPB31        (1 << 31)   /* Bit 31: Serial Communication Interface 0 Module Stop */
+#define MSTP_MSTPCRB_CEC            (1 << 3)    /* Bit 3 : CEC Module Stop */
+#define MSTP_MSTPCRB_QSPI           (1 << 6)    /* Bit 6 : Quad Serial Peripheral Interface Module Stop */
+#define MSTP_MSTPCRB_USBFS          (1 << 11)   /* Bit 11: Universal Serial Bus 2.0 FS Interface 0 Module Stop */
+#define MSTP_MSTPCRB_USBHS          (1 << 12)   /* Bit 12: Universal Serial Bus 2.0 HS Interface 0 Module Stop */
 
 /****************************************************************************
  * Public Data
