@@ -66,6 +66,9 @@
 #define USB_TYPFIELD_ISO    (0xC000u)   /* Isochronous */
 #define USB_TYPFIELD_INT    (0x8000u)   /* Interrupt */
 #define USB_TYPFIELD_BULK   (0x4000u)   /* Bulk */
+#define USB_CNTMDFIELD      (0x0100U)   /* Continuous transfer mode select */
+#define USB_CFG_CNTMDON     (0x0100U)
+#define USB_CFG_CNTMDOFF    (0x0000U)
 #define USB_INT_BRDY        (0x0001u)
 #define USB_DIR_P_IN        (0x0010u)   /* PERI IN */
 #define USB_DIR_P_OUT       (0x0000u)   /* PERI OUT */
@@ -113,6 +116,7 @@
 #define USB_PIPE9         (9)
 #define USB_MIN_PIPE_NO   (1)
 #define USB_MAX_PIPE_NO   (9)
+#define USB_MAXPIPE_NUM   (9)
 
 /* Transfer status Type */
 
@@ -130,6 +134,7 @@
 #define USB_CTRL_WRITING  (18u)
 #define USB_DATA_READING  (19u)
 #define USB_DATA_WRITING  (20u)
+#define USB_DATA_FIFO_ERR (21U)
 
 /* FIFO read / write result */
 

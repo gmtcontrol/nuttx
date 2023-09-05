@@ -213,6 +213,14 @@
 #define MSTP_MSTPCRB_QSPI           (1 << 6)    /* Bit 6 : Quad Serial Peripheral Interface Module Stop */
 #define MSTP_MSTPCRB_USBFS          (1 << 11)   /* Bit 11: Universal Serial Bus 2.0 FS Interface 0 Module Stop */
 #define MSTP_MSTPCRB_USBHS          (1 << 12)   /* Bit 12: Universal Serial Bus 2.0 HS Interface 0 Module Stop */
+#define MSTP_MSTPCRB_EMAC           (1 << 15)   /* Bit 15: ETHERC0 and EDMAC0 Module Stop */
+
+/* Module Stop Control Register D */
+
+#define MSTP_MSTPCRD_AGT3           (1 << 0)    /* Bit 0 : Low Power Asynchronous General Purpose Timer 3 Module Stop */
+#define MSTP_MSTPCRD_AGT2           (1 << 1)    /* Bit 1 : Low Power Asynchronous General Purpose Timer 2 Module Stop */
+#define MSTP_MSTPCRD_AGT1           (1 << 2)    /* Bit 2 : Low Power Asynchronous General Purpose Timer 1 Module Stop */
+#define MSTP_MSTPCRD_AGT0           (1 << 3)    /* Bit 3 : Low Power Asynchronous General Purpose Timer 0 Module Stop */
 
 /****************************************************************************
  * Public Data

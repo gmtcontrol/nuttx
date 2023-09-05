@@ -63,7 +63,7 @@
 #define BSP_PRV_PLLCCR                          (((RA6M5_CFG_PLL_MUL  & 0x3f) << 8) | (1 << 4) | RA6M5_CFG_PLL_DIV )
 #endif
 
-#if (RA6M5_CFG_PLL_SOURCE == RA6M5_CLOCKS_SOURCE_MOSC)
+#if (RA6M5_CFG_PLL2_SOURCE == RA6M5_CLOCKS_SOURCE_MOSC)
 #define BSP_PRV_PLL2CCR                         (((RA6M5_CFG_PLL2_MUL & 0x3f) << 8) | (0 << 4) | RA6M5_CFG_PLL2_DIV)
 #else
 #define BSP_PRV_PLL2CCR                         (((RA6M5_CFG_PLL2_MUL & 0x3f) << 8) | (1 << 4) | RA6M5_CFG_PLL2_DIV)
@@ -373,7 +373,6 @@ void ra6m5_stdclockconfig(void)
     do {
         regval = getreg8(RA6M5_SYSTEM_REG(RA6M5_SYS_OSCSF_OFFSET));
     } while (!(regval & SYS_OSCSF_PLLSF));
-
 
     /* Set the wait states for ROM */
     putreg8(BSP_PRV_ROM_3_WAIT_CYCLES, RA6M5_FCACHE_REG(RA6M5_FCACHE_FLWT_OFFSET));

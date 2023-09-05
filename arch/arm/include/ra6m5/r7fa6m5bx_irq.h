@@ -315,7 +315,7 @@
 #  define RA6M5_IRQ_RTC_ALARM   (RA6M5_RTC_IRQBASE + 0) /* RTC Alarm interrupt */
 #  define RA6M5_IRQ_RTC_PERIOD  (RA6M5_RTC_IRQBASE + 1) /* RTC Periodic interrupt */
 #  define RA6M5_IRQ_RTC_CARRY   (RA6M5_RTC_IRQBASE + 2) /* RTC Carry interrupt */
-#  define RA6M5_USBFS_IRQBASE   (RA6M5_DTC_IRQBASE + 3)
+#  define RA6M5_USBFS_IRQBASE   (RA6M5_RTC_IRQBASE + 3)
 #else 
 #  define RA6M5_USBFS_IRQBASE   (RA6M5_RTC_IRQBASE)
 #endif
@@ -333,7 +333,82 @@
 #    define RA6M5_USBHS_IRQBASE     (RA6M5_USBFS_IRQBASE + 2)
 #  endif
 #else 
-#  define RA6M5_USBHS_IRQBASE   (RA6M5_USBFS_IRQBASE)
+#  define RA6M5_USBHS_IRQBASE       (RA6M5_USBFS_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_USBHS
+#  ifdef CONFIG_USBDEV_DMA
+#    define RA6M5_IRQ_USBHS_FIFO0   (RA6M5_USBHS_IRQBASE + 0)   /* DMA transfer request 0 */
+#    define RA6M5_IRQ_USBHS_FIFO1   (RA6M5_USBHS_IRQBASE + 1)   /* DMA transfer request 1 */
+#    define RA6M5_IRQ_USBHS_INT_RSM (RA6M5_USBHS_IRQBASE + 2)   /* USBHS interruptrupt */
+#    define RA6M5_AGT0_IRQBASE      (RA6M5_USBHS_IRQBASE + 3)
+#  else
+#    define RA6M5_IRQ_USBHS_INT_RSM (RA6M5_USBHS_IRQBASE + 0)   /* USBFS interrupt */
+#    define RA6M5_AGT0_IRQBASE      (RA6M5_USBHS_IRQBASE + 1)
+#  endif
+#else 
+#  define RA6M5_AGT0_IRQBASE        (RA6M5_USBHS_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_AGT0
+#  define RA6M5_IRQ_AGT0_INT        (RA6M5_AGT0_IRQBASE + 0)    /* AGT0 interrupt */
+#  define RA6M5_IRQ_AGT0_CMPA       (RA6M5_AGT0_IRQBASE + 1)    /* AGT0 Compare match A */
+#  define RA6M5_IRQ_AGT0_CMPB       (RA6M5_AGT0_IRQBASE + 2)    /* AGT0 Compare match B */
+#  define RA6M5_AGT1_IRQBASE        (RA6M5_AGT0_IRQBASE + 3)
+#else 
+#  define RA6M5_AGT1_IRQBASE        (RA6M5_AGT0_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_AGT1
+#  define RA6M5_IRQ_AGT1_INT        (RA6M5_AGT1_IRQBASE + 0)    /* AGT1 interrupt */
+#  define RA6M5_IRQ_AGT1_CMPA       (RA6M5_AGT1_IRQBASE + 1)    /* AGT1 Compare match A */
+#  define RA6M5_IRQ_AGT1_CMPB       (RA6M5_AGT1_IRQBASE + 2)    /* AGT1 Compare match B */
+#  define RA6M5_AGT2_IRQBASE        (RA6M5_AGT1_IRQBASE + 3)
+#else 
+#  define RA6M5_AGT2_IRQBASE        (RA6M5_AGT1_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_AGT2
+#  define RA6M5_IRQ_AGT2_INT        (RA6M5_AGT2_IRQBASE + 0)    /* AGT2 interrupt */
+#  define RA6M5_IRQ_AGT2_CMPA       (RA6M5_AGT2_IRQBASE + 1)    /* AGT2 Compare match A */
+#  define RA6M5_IRQ_AGT2_CMPB       (RA6M5_AGT2_IRQBASE + 2)    /* AGT2 Compare match B */
+#  define RA6M5_AGT3_IRQBASE        (RA6M5_AGT2_IRQBASE + 3)
+#else 
+#  define RA6M5_AGT3_IRQBASE        (RA6M5_AGT2_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_AGT3
+#  define RA6M5_IRQ_AGT3_INT        (RA6M5_AGT3_IRQBASE + 0)    /* AGT3 interrupt */
+#  define RA6M5_IRQ_AGT3_CMPA       (RA6M5_AGT3_IRQBASE + 1)    /* AGT3 Compare match A */
+#  define RA6M5_IRQ_AGT3_CMPB       (RA6M5_AGT3_IRQBASE + 2)    /* AGT3 Compare match B */
+#  define RA6M5_AGT4_IRQBASE        (RA6M5_AGT3_IRQBASE + 3)
+#else 
+#  define RA6M5_AGT4_IRQBASE        (RA6M5_AGT3_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_AGT4
+#  define RA6M5_IRQ_AGT4_INT        (RA6M5_AGT4_IRQBASE + 0)    /* AGT4 interrupt */
+#  define RA6M5_IRQ_AGT4_CMPA       (RA6M5_AGT4_IRQBASE + 1)    /* AGT4 Compare match A */
+#  define RA6M5_IRQ_AGT4_CMPB       (RA6M5_AGT4_IRQBASE + 2)    /* AGT4 Compare match B */
+#  define RA6M5_AGT5_IRQBASE        (RA6M5_AGT4_IRQBASE + 3)
+#else 
+#  define RA6M5_AGT5_IRQBASE        (RA6M5_AGT4_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_AGT5
+#  define RA6M5_IRQ_AGT5_INT        (RA6M5_AGT5_IRQBASE + 0)    /* AGT5 interrupt */
+#  define RA6M5_IRQ_AGT5_CMPA       (RA6M5_AGT5_IRQBASE + 1)    /* AGT5 Compare match A */
+#  define RA6M5_IRQ_AGT5_CMPB       (RA6M5_AGT5_IRQBASE + 2)    /* AGT5 Compare match B */
+#  define RA6M5_ETH_IRQBASE         (RA6M5_AGT5_IRQBASE + 3)
+#else 
+#  define RA6M5_ETH_IRQBASE         (RA6M5_AGT5_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_EMAC
+#  define RA6M5_IRQ_ETH             (RA6M5_ETH_IRQBASE + 0)     /* EDMAC 0 interrupt */
+#  define RA6M5_NEXT_IRQBASE        (RA6M5_ETH_IRQBASE + 1)
+#else 
+#  define RA6M5_NEXT_IRQBASE        (RA6M5_ETH_IRQBASE)
 #endif
 
 #if defined(CONFIG_RA6M5_R7FA6M5BX)
@@ -344,6 +419,6 @@
 
 /* (EXTI interrupts do not use IRQ numbers) */
 
-#define NR_IRQS                 (RA6M5_IRQ_FIRST + RA6M5_IRQ_NEXTINTS)
+#define NR_IRQS                     (RA6M5_IRQ_FIRST + RA6M5_IRQ_NEXTINTS)
 
 #endif /* __ARCH_ARM_INCLUDE_RA6M5_R7FA6M5BX_IRQ_H */

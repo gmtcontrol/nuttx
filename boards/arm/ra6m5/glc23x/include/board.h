@@ -63,6 +63,7 @@
 #define RA6M5_CFG_PLL_SOURCE    (RA6M5_CLOCKS_SOURCE_MOSC)          /* PLL Src: MOSC */
 #define RA6M5_CFG_PLL_DIV       (RA6M5_CLOCKS_PLL_DIV_2)            /* PLL Div /2 */
 #define RA6M5_CFG_PLL_MUL       (RA6M5_CLOCKS_PLL_MUL_25_0)         /* PLL Mul x25.0 */
+
 #define RA6M5_CFG_PLL2_SOURCE   (RA6M5_CLOCKS_SOURCE_MOSC)          /* PLL2 Src: MOSC */
 #define RA6M5_CFG_PLL2_DIV      (RA6M5_CLOCKS_PLL_DIV_2)            /* PLL2 Div /2 */
 #define RA6M5_CFG_PLL2_MUL      (RA6M5_CLOCKS_PLL_MUL_24_0)         /* PLL2 Mul x24.0 */
@@ -101,6 +102,23 @@
 /* USBFS: VBUS Connected to P407 */
 
 #define GPIO_OTGFS_VBUS         GPIO_USBFS_VBUS_1                   /* P407   */
+
+/* EMAC: */
+
+#define GPIO_ETH_MDC            GPIO_RMII_MDC                       /* P401   */
+#define GPIO_ETH_MDIO           GPIO_RMII_MDIO                      /* P402   */
+#define GPIO_ETH_REFCLKI        GPIO_RMII_REFCLKI                   /* P412   */
+#define GPIO_ETH_TXD0           GPIO_RMII_TXD0                      /* P413   */
+#define GPIO_ETH_TXD1           GPIO_RMII_TXD1                      /* P414   */
+#define GPIO_ETH_TX_EN          GPIO_RMII_TX_EN                     /* P415   */
+#define GPIO_ETH_RXD0           GPIO_RMII_RXD0                      /* P411   */
+#define GPIO_ETH_RXD1           GPIO_RMII_RXD1                      /* P410   */
+#define GPIO_ETH_RX_ER          GPIO_RMII_RX_ER                     /* P409   */
+#define GPIO_ETH_CRS_DV         GPIO_RMII_CRS_DV                    /* P408   */
+
+#define GPIO_ETH_PWR            (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_OUTPUT_SET|GPIO_PORT4|GPIO_PIN4)   /* P404   */
+#define GPIO_ETH_RST            (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_OUTPUT_SET|GPIO_PORT4|GPIO_PIN6)   /* P406   */
+#define GPIO_ETH_INT            (GPIO_INPUT |GPIO_FLOAT    |GPIO_PORT4|GPIO_PIN5)                   /* P405   */
 
 /****************************************************************************
  * Public Data

@@ -263,8 +263,8 @@ uint16_t g_usb_pstd_req_value;         /* Value */
 uint16_t g_usb_pstd_req_index;         /* Index */
 uint16_t g_usb_pstd_req_length;        /* Length */
 
-uint32_t g_usb_pstd_data_cnt[USB_MAX_PIPE_NO + 1u];
-uint8_t  *gp_usb_pstd_data[USB_MAX_PIPE_NO + 1u];
+uint32_t g_usb_pstd_data_cnt[USB_MAXPIPE_NUM + 1u];
+uint8_t  *gp_usb_pstd_data[USB_MAXPIPE_NUM + 1u];
 uint16_t g_usb_pstd_remote_wakeup = USB_FALSE;
 uint16_t g_usb_pstd_test_mode_flag = USB_FALSE;         /* Test mode flag */
 uint16_t g_usb_pstd_test_mode_select;
@@ -278,8 +278,8 @@ struct usb_utr
     uint32_t    tranlen;        /* Transfer data length */
 };
 
-struct usb_utr *g_p_usb_pstd_pipe[USB_MAX_PIPE_NO + 1u];
-struct usb_utr g_usb_pdata[USB_MAX_PIPE_NO + 1];
+struct usb_utr *g_p_usb_pstd_pipe[USB_MAXPIPE_NUM + 1u];
+struct usb_utr g_usb_pdata[USB_MAXPIPE_NUM + 1];
 uint16_t g_usb_pstd_stall_pipe[USB_MAX_PIPE_NO + 1u];
 uint8_t g_buffer[64] ;
 
@@ -363,6 +363,7 @@ void hw_usb_pclear_dprpu(void);
 static void hw_usb_clear_aclrm(uint16_t pipeno);
 static void hw_usb_set_aclrm(uint16_t pipeno);
 static void usb_cstd_do_aclrm(uint16_t pipe);
+static void usb_cstd_set_buf(uint16_t pipe);
 static void hw_usb_set_curpipe(uint16_t pipemode, uint16_t pipeno);
 static void hw_usb_rmw_fifosel(uint16_t pipemode,
                          uint16_t data, uint16_t bitptn);
@@ -628,7 +629,7 @@ static uint16_t usb_cstd_is_set_frdy(uint16_t pipe, uint16_t fifosel,
 
   /* WAIT_LOOP */
 
-  for (i = 0; i < 4; i++)
+  for (i = 0; i < 100; i++)
     {
       buf = hw_usb_read_fifoctr(fifosel);
 
@@ -637,8 +638,16 @@ static uint16_t usb_cstd_is_set_frdy(uint16_t pipe, uint16_t fifosel,
           return buf;
         }
 
+      /* Caution!!!
+        * Depending on the external bus speed of CPU, you may need to wait
+        * for 100ns here.
+        * For details, please look at the data sheet.   *//***** The example of reference. *****/
+
       buf = hw_usb_read_syscfg();
+      (void) buf;
       buf = hw_usb_read_syssts();
+      (void) buf;
+      up_udelay(10);
     }
 
   return USB_ERROR;
@@ -670,6 +679,18 @@ static uint16_t hw_usb_read_pipemaxp(void)
   return ra6m5_usbdev_getreg16(RA6M5_USB_PIPEMAXP_OFFSET);
 }
 
+/******************************************************************************
+ * Name: hw_usb_read_dcpcfg
+ * 
+ * Description:
+ *    Returns DCPCFG register content
+ * 
+ ******************************************************************************/
+static uint16_t hw_usb_read_dcpcfg(void)
+{
+  return ra6m5_usbdev_getreg16(RA6M5_USB_DCPCFG_OFFSET);
+}
+
 /****************************************************************************
  * Name: usb_cstd_get_buf_size
  *
@@ -685,11 +706,21 @@ static uint16_t usb_cstd_get_buf_size(uint16_t pipe)
 
   if (USB_PIPE0 == pipe)
     {
-      buf = hw_usb_read_dcpmaxp();
+      buf = hw_usb_read_dcpcfg();
+      if (USB_CFG_CNTMDON == (buf & USB_CNTMDFIELD))
+      {
+          /* Continuation transmit */
+          /* Buffer Size */
+          size = USB_PIPE0BUF;
+      }
+      else
+      {
+          /* Not continuation transmit */
+          buf = hw_usb_read_dcpmaxp();
 
-      /* Max Packet Size */
-
-     size = (uint16_t)(buf & USB_MAXP);
+          /* Max Packet Size */
+          size = (uint16_t) (buf & USB_MAXP);
+      }
     }
   else
     {
@@ -719,7 +750,7 @@ static uint16_t usb_cstd_get_maxpacket_size(uint16_t pipe)
   uint16_t size;
   uint16_t buf;
 
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return USB_NULL; /* Error */
     }
@@ -824,9 +855,7 @@ uint8_t *usb_pstd_write_fifo(uint16_t count, uint16_t pipemode,
   if ((count & (uint16_t)0x0001u) != 0u)
     {
       /* 8bit access */
-
       /* count == odd */
-
       /* Change FIFO access width */
 
       hw_usb_set_mbw(pipemode, USB_MBW_8);
@@ -879,8 +908,9 @@ uint16_t usb_pstd_write_data(uint16_t pipe, uint16_t pipemode)
   uint16_t buf;
   uint16_t mxps;
   uint16_t end_flag;
+  uint16_t read_pid;
 
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return USB_ERROR; /* Error */
     }
@@ -889,8 +919,7 @@ uint16_t usb_pstd_write_data(uint16_t pipe, uint16_t pipemode)
 
   if ((USB_CUSE == pipemode) && (USB_PIPE0 == pipe))
     {
-      buf = usb_cstd_is_set_frdy(pipe, (uint16_t)USB_CUSE,
-                                 (uint16_t)USB_ISEL);
+      buf = usb_cstd_is_set_frdy(pipe, (uint16_t)USB_CUSE, (uint16_t)USB_ISEL);
     }
   else
     {
@@ -903,7 +932,7 @@ uint16_t usb_pstd_write_data(uint16_t pipe, uint16_t pipemode)
     {
       /* FIFO access error */
 
-      buf = usb_cstd_is_set_frdy(pipe, (uint16_t)pipemode, USB_FALSE);
+      return USB_FIFOERROR;
     }
 
   /* Data buffer size */
@@ -958,8 +987,10 @@ uint16_t usb_pstd_write_data(uint16_t pipe, uint16_t pipemode)
       count = size;
     }
 
-  gp_usb_pstd_data[pipe] = usb_pstd_write_fifo(count, pipemode,
-                                               gp_usb_pstd_data[pipe]);
+  read_pid = usb_cstd_get_pid(pipe);
+  usb_cstd_set_nak(pipe);
+
+  gp_usb_pstd_data[pipe] = usb_pstd_write_fifo(count, pipemode, gp_usb_pstd_data[pipe]);
 
   /* Check data count to remain */
 
@@ -988,6 +1019,14 @@ uint16_t usb_pstd_write_data(uint16_t pipe, uint16_t pipemode)
 
       g_usb_pstd_data_cnt[pipe] -= count;
     }
+
+  hw_usb_clear_status_bemp(pipe);
+
+  /* USB_PID_BUF ? */
+  if (USB_PID_BUF == (USB_PID & read_pid))
+  {
+      usb_cstd_set_buf(pipe);
+  }
 
   /* End or Err or Continue */
 
@@ -1020,7 +1059,7 @@ static void hw_usb_set_nrdyenb(uint16_t pipeno)
 
 static void usb_cstd_nrdy_enable(uint16_t pipe)
 {
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return; /* Error */
     }
@@ -1040,7 +1079,7 @@ static void usb_cstd_nrdy_enable(uint16_t pipe)
 
 static void usb_cstd_set_buf(uint16_t pipe)
 {
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return; /* Error */
     }
@@ -1103,7 +1142,6 @@ void usb_pstd_ctrl_write(uint32_t bsize, uint8_t *table)
   hw_usb_set_bclr(USB_CUSE);
 
   /* Interrupt enable */
-
   /* Enable ready interrupt */
 
   hw_usb_set_brdyenb((uint16_t) USB_PIPE0);
@@ -1142,6 +1180,7 @@ uint16_t usb_ctrl_read(uint32_t bsize, uint8_t *table)
 uint16_t usb_pstd_ctrl_read(uint32_t bsize, uint8_t *table)
 {
   uint16_t end_flag;
+
   g_usb_pstd_data_cnt[USB_PIPE0] = bsize;
   gp_usb_pstd_data[USB_PIPE0] = table;
   usb_cstd_chg_curpipe((uint16_t) USB_PIPE0, (uint16_t) USB_CUSE,
@@ -1221,7 +1260,7 @@ void usb_pstd_buf_to_fifo(uint16_t pipe, uint16_t useport)
 {
   uint16_t end_flag;
 
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return; /* Error */
     }
@@ -1229,7 +1268,6 @@ void usb_pstd_buf_to_fifo(uint16_t pipe, uint16_t useport)
   /* Disable Ready Interrupt */
 
   hw_usb_clear_brdyenb(pipe);
-  hw_usb_clear_bempenb(pipe);
 
   end_flag = usb_pstd_write_data(pipe, useport);
 
@@ -1269,11 +1307,11 @@ void usb_pstd_buf_to_fifo(uint16_t pipe, uint16_t useport)
         usb_cstd_nrdy_enable(pipe);
         break;
 
-      case USB_ERROR:
+      case USB_FIFOERROR:
 
         /* FIFO access error */
 
-        usb_pstd_forced_termination(pipe, (uint16_t)USB_DATA_ERR);
+        usb_pstd_forced_termination(pipe, (uint16_t)USB_DATA_FIFO_ERR);
         break;
 
       default:
@@ -1294,23 +1332,21 @@ void usb_pstd_data_end(uint16_t pipe, uint16_t status)
 {
   uint16_t useport;
 
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return; /* Error */
     }
 
   /* PID = NAK */
-
   /* Set NAK */
 
   usb_cstd_set_nak(pipe);
 
   /* Pipe number to FIFO port select */
 
-  useport = USB_CUSE;
-
+  useport = usb_pstd_pipe2fport(pipe);
+  
   /* Disable Interrupt */
-
   /* Disable Ready Interrupt */
 
   hw_usb_clear_brdyenb(pipe);
@@ -1375,17 +1411,31 @@ void usb_pstd_send_start(uint16_t pipe, uint8_t *buf, uint32_t size)
 
   /* Pipe number to FIFO port select */
 
-  useport = USB_CUSE;
+  useport = usb_pstd_pipe2fport(pipe);
 
-  usb_cstd_chg_curpipe(pipe, useport, USB_FALSE);
+  /* Check use FIFO access */
 
-  /* Buffer to FIFO data write */
+  switch (useport)
+  {
+      /* CFIFO use */
+      case USB_CUSE:
+      {
+          /* Buffer to FIFO data write */
 
-  usb_pstd_buf_to_fifo(pipe, useport);
+          usb_pstd_buf_to_fifo(pipe, useport);
 
-  /* Set BUF */
+          /* Set BUF */
 
-  usb_cstd_set_buf(pipe);
+          usb_cstd_set_buf(pipe);
+          break;
+      }
+
+      default:
+          /* Access is NG */
+
+          usb_pstd_forced_termination(pipe, (uint16_t) USB_DATA_ERR);
+          break;
+  }
 }
 
 /****************************************************************************
@@ -1413,7 +1463,7 @@ static uint16_t usb_cstd_get_pipe_dir(uint16_t pipe)
 {
   uint16_t buf;
 
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return USB_NULL; /* Error */
     }
@@ -1425,6 +1475,7 @@ static uint16_t usb_cstd_get_pipe_dir(uint16_t pipe)
   /* Read Pipe direction */
 
   buf = hw_usb_read_pipecfg();
+
   return (uint16_t)(buf & USB_DIRFIELD);
 }
 
@@ -1440,7 +1491,7 @@ static uint16_t usb_cstd_get_pipe_type(uint16_t pipe)
 {
   uint16_t buf;
 
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return USB_NULL; /* Error */
     }
@@ -1452,6 +1503,7 @@ static uint16_t usb_cstd_get_pipe_type(uint16_t pipe)
   /* Read Pipe direction */
 
   buf = hw_usb_read_pipecfg();
+
   return (uint16_t)(buf & USB_TYPFIELD);
 }
 
@@ -1497,7 +1549,7 @@ static void hw_usb_set_trenb(uint16_t pipeno)
 {
   uint16_t *p_reg;
 
-  p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_PIPE1TRE_OFFSET + ((pipeno - 1) * 4));
+  p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_PIPE1TRE_OFFSET) + ((pipeno - 1) * 2);
 
   (*p_reg) |= USB_TRENB;
 }
@@ -1514,7 +1566,7 @@ static void hw_usb_write_pipetrn(uint16_t pipeno, uint16_t data)
 {
   uint16_t *p_reg;
 
-  p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_PIPE1TRN_OFFSET + ((pipeno - 1) * 4));
+  p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_PIPE1TRN_OFFSET) + ((pipeno - 1) * 2);
 
   *p_reg = data;
 }
@@ -1550,6 +1602,13 @@ void usb_pstd_receive_start(uint16_t pipe)
   uint16_t mxps;
   uint16_t useport;
 
+  if (USB_MAX_PIPE_NO < pipe)
+  {
+    /* Error */
+
+    return;
+  }
+
   /* Evacuation pointer */
 
   pp = g_p_usb_pstd_pipe[pipe];
@@ -1565,7 +1624,7 @@ void usb_pstd_receive_start(uint16_t pipe)
 
   /* Pipe number to FIFO port select */
 
-  useport = USB_CUSE;
+  useport = usb_pstd_pipe2fport(pipe);
 
   /* Check use FIFO access */
 
@@ -1590,15 +1649,13 @@ void usb_pstd_receive_start(uint16_t pipe)
                {
                  /* Set Transaction counter */
 
-                 usb_cstd_set_transaction_counter(pipe, (uint16_t)(length /
-                                                  mxps));
+                 usb_cstd_set_transaction_counter(pipe, (uint16_t)(length / mxps));
                }
              else
               {
                 /* Set Transaction counter */
 
-                usb_cstd_set_transaction_counter(pipe, (uint16_t)((length
-                                                / mxps) + (uint32_t)1u));
+                usb_cstd_set_transaction_counter(pipe, (uint16_t)((length / mxps) + (uint32_t)1u));
               }
           }
 
@@ -1642,7 +1699,9 @@ void usb_pstd_set_submitutr(struct usb_utr *utrmsg)
     {
       if (USB_DIR_P_OUT == usb_cstd_get_pipe_dir(pipenum))
         {
-          usb_pstd_receive_start(pipenum);    /* Out transfer */
+          /* Out transfer */
+
+          usb_pstd_receive_start(pipenum);
         }
       else
         {
@@ -1678,6 +1737,7 @@ uint8_t usb_pstd_transfer_start(struct usb_utr *ptr)
 long usb_data_write(uint8_t epno, uint8_t *buf, uint32_t size)
 {
   uint8_t pipe;
+
   if (epno == BULK_IN_EPNUM)
     {
       pipe = BULK_IN_PIPE;
@@ -1716,8 +1776,8 @@ void usb_data_read(uint8_t *buf, uint32_t size)
 {
   uint8_t pipe = BULK_OUT_PIPE;
   struct usb_utr *p_tran_data;
-  memset((void *)&g_usb_pdata, 0, ((USB_MAX_PIPE_NO + 1) *
-         sizeof(struct usb_utr)));
+
+  memset((void *)&g_usb_pdata, 0, ((USB_MAX_PIPE_NO + 1) * sizeof(struct usb_utr)));
   p_tran_data = (struct usb_utr *)&g_usb_pdata[pipe];
   p_tran_data->p_tranadr = buf; /* Data address */
   p_tran_data->tranlen = size;  /* Data Size */
@@ -2726,7 +2786,7 @@ uint16_t usb_pstd_pipe2fport(uint16_t pipe)
 {
   uint16_t fifo_mode = USB_CUSE;
 
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return USB_NULL; /* Error */
     }
@@ -3484,7 +3544,7 @@ int ra6m5_pullup(struct usbdev_s *dev, bool enable)
   /* Disable DRPD bit in SYSCFG register */
 
   regval = ra6m5_usbdev_getreg16(RA6M5_USB_SYSCFG_OFFSET);
-  regval &= ~(USB_DRPD);
+  (enable) ? (regval |= USB_DPRPU) : (regval &= ~(USB_DPRPU));
   ra6m5_usbdev_putreg16(regval, RA6M5_USB_SYSCFG_OFFSET);
 
   return OK;
@@ -3536,7 +3596,7 @@ static void hw_usb_clear_aclrm(uint16_t pipeno)
 {
   uint16_t *p_reg;
 
-  p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
+  p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
 
   (*p_reg) &= (~USB_ACLRM);
 }
@@ -3553,7 +3613,7 @@ static void hw_usb_set_aclrm(uint16_t pipeno)
 {
   uint16_t *p_reg;
 
-  p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
+  p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
 
   (*p_reg) |= USB_ACLRM;
 }
@@ -3568,7 +3628,7 @@ static void hw_usb_set_aclrm(uint16_t pipeno)
 
 static void usb_cstd_do_aclrm(uint16_t pipe)
 {
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return; /* Error */
     }
@@ -3706,15 +3766,15 @@ static void *hw_usb_get_fifosel_adr(uint16_t pipemode)
   switch (pipemode)
     {
       case USB_CUSE:
-        p_reg = (void *)(RA6M5_USBFS_BASE + RA6M5_USB_CFIFOSEL_OFFSET);
+        p_reg = (void *)ra6m5_usbdev_getreg_addr(RA6M5_USB_CFIFOSEL_OFFSET);
         break;
 
       case USB_D0USE:
-        p_reg = (void *)(RA6M5_USBFS_BASE + RA6M5_USB_D0FIFOSEL_OFFSET);
+        p_reg = (void *)ra6m5_usbdev_getreg_addr(RA6M5_USB_D0FIFOSEL_OFFSET);
         break;
 
       case USB_D1USE:
-        p_reg = (void *)(RA6M5_USBFS_BASE + RA6M5_USB_D1FIFOSEL_OFFSET);
+        p_reg = (void *)ra6m5_usbdev_getreg_addr(RA6M5_USB_D1FIFOSEL_OFFSET);
         break;
 
       default:
@@ -3753,7 +3813,7 @@ static void hw_usb_set_trclr(uint16_t pipeno)
 {
   uint16_t *p_reg;
 
-  p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_PIPE1TRE_OFFSET + ((pipeno - 1) * 4));
+  p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_PIPE1TRE_OFFSET + ((pipeno - 1) * 4));
 
   (*p_reg) |= USB_TRCLR;
 }
@@ -3770,7 +3830,7 @@ static void hw_usb_clear_trenb(uint16_t pipeno)
 {
   uint16_t *p_reg;
 
-  p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_PIPE1TRE_OFFSET + ((pipeno - 1) * 2));
+  p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_PIPE1TRE_OFFSET + ((pipeno - 1) * 4));
   (*p_reg) &= (~USB_TRENB);
 }
 
@@ -3853,11 +3913,11 @@ static uint16_t hw_usb_read_pipectr(uint16_t pipeno)
 
   if (USB_PIPE0 == pipeno)
     {
-      p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_DCPCTR_OFFSET);
+      p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_DCPCTR_OFFSET);
     }
   else
     {
-      p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
+      p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
     }
 
   return *p_reg;
@@ -3877,11 +3937,11 @@ static void hw_usb_clear_pid(uint16_t pipeno, uint16_t data)
 
   if (USB_PIPE0 == pipeno)
     {
-      p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_DCPCTR_OFFSET);
+      p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_DCPCTR_OFFSET);
     }
   else
     {
-       p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
+       p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
     }
 
   (*p_reg) &= (~data);
@@ -3991,7 +4051,7 @@ void usb_pstd_forced_termination(uint16_t pipe, uint16_t status)
 
 static void usb_cstd_clr_stall(uint16_t pipe)
 {
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return; /* Error */
     }
@@ -4073,7 +4133,7 @@ static void hw_usb_set_sqclr(uint16_t pipeno)
     }
   else
     {
-      p_reg = (uint16_t *)(RA6M5_USBFS_BASE + RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
+      p_reg = (uint16_t *)ra6m5_usbdev_getreg_addr(RA6M5_USB_PIPE1CTR_OFFSET + ((pipeno - 1) * 2));
       (*p_reg) |= USB_SQCLR;
     }
 }
@@ -4199,7 +4259,7 @@ void usb_pstd_detach_process(void)
   /* Pull-up disable */
 
   hw_usb_pclear_dprpu();
-  for (i = USB_MIN_PIPE_NO; i < (USB_MAX_PIPE_NO +1); i++)
+  for (i = USB_MIN_PIPE_NO; i < (USB_MAXPIPE_NUM +1); i++)
     {
       usb_pstd_forced_termination(i, (uint16_t)USB_DATA_STOP);
       usb_cstd_clr_pipe_cnfg(i);
@@ -5313,7 +5373,7 @@ void usb_pstd_fifo_to_buf(uint16_t pipe, uint16_t useport)
 
   end_flag = USB_ERROR;
 
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return; /* Error */
     }
@@ -5379,7 +5439,7 @@ void usb_pstd_brdy_pipe_process(uint16_t bitsts)
 
   /* WAIT_LOOP */
 
-  for (i = USB_MIN_PIPE_NO; i <= USB_MAX_PIPE_NO; i++)
+  for (i = USB_MIN_PIPE_NO; i <= USB_MAXPIPE_NUM; i++)
     {
       if (0u != (bitsts & USB_BITSET(i)))
         {
@@ -5486,7 +5546,7 @@ void usb_pstd_brdy_pipe(uint16_t bitsts, struct ra6m5_usbdev_s *priv,
 
       usb_pstd_brdy_pipe_process(bitsts);
       epno = BULK_IN_EPNUM;
-      nbytes = USB_DCPMAXP - g_usb_pstd_data_cnt[BULK_OUT_PIPE];
+      nbytes = RA6M5_MAXPACKET_SIZE - g_usb_pstd_data_cnt[BULK_OUT_PIPE];
       usb_data_write(epno, g_buffer, nbytes);
       ra6m5_usbdev_putreg16(0, RA6M5_USB_BRDYSTS_OFFSET);
       privep->head->req.buf = g_buffer;
@@ -5527,7 +5587,7 @@ static uint16_t usb_cstd_get_pid(uint16_t pipe)
 {
   uint16_t buf;
 
-  if (USB_MAX_PIPE_NO < pipe)
+  if (USB_MAXPIPE_NUM < pipe)
     {
       return USB_NULL; /* Error */
     }
@@ -5590,7 +5650,7 @@ void usb_pstd_bemp_pipe_process(uint16_t bitsts)
 
   /* WAIT_LOOP */
 
-  for (i = USB_PIPE6; i <= USB_MAX_PIPE_NO; i++)
+  for (i = USB_PIPE6; i <= USB_MAXPIPE_NUM; i++)
     {
       /* Interrupt check */
 
@@ -5704,7 +5764,7 @@ void usb_pstd_nrdy_pipe_process(uint16_t bitsts)
 
   /* WAIT_LOOP */
 
-  for (i = USB_MIN_PIPE_NO; i <= USB_MAX_PIPE_NO; i++)
+  for (i = USB_MIN_PIPE_NO; i <= USB_MAXPIPE_NUM; i++)
     {
       if (0 != (bitsts & USB_BITSET(i)))
         {
@@ -6031,8 +6091,7 @@ void arm_usbinitialize(void)
 
   putreg16((BSP_PRV_PRCR_KEY) | 0x0bU, RA6M5_SYSTEM_REG(RA6M5_SYS_PRCR_OFFSET));
 
-
-  /* Clear bit 11 - so that USB module is released from stop state */
+  /* Release from stop state */
 
   modifyreg32(RA6M5_MSTP_REG(RA6M5_MSTP_MSTPCRB_OFFSET), MSTP_MSTPCRB_USBFS, 0);
 
@@ -6074,10 +6133,11 @@ void arm_usbinitialize(void)
   regval = ra6m5_usbdev_getreg16(RA6M5_USB_SYSCFG_OFFSET);
   regval |= (USB_SCKE);
   ra6m5_usbdev_putreg16(regval, RA6M5_USB_SYSCFG_OFFSET);
-
-  regval = ra6m5_usbdev_getreg16(RA6M5_USB_PHYSLEW_OFFSET);
-  regval |= (USB_SLEWR00 | USB_SLEWF00);
-  ra6m5_usbdev_putreg16(regval, RA6M5_USB_PHYSLEW_OFFSET);
+  do
+  {
+    regval = ra6m5_usbdev_getreg16(RA6M5_USB_SYSCFG_OFFSET);
+  } while (!(regval & USB_SCKE));
+  
 
   /* Set USBE bit in SYSCFG register */
 

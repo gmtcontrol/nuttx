@@ -168,11 +168,13 @@ int ra6m5_configgpio(uint32_t cfgset)
         break;
 
       case GPIO_OUTPUT:     /* General purpose output mode */
+        pinmode = IOPORT_CFG_PORT_DIRECTION_OUTPUT;
 
         /* Set the initial output value */
 
-        ra6m5_gpiowrite(cfgset, (cfgset & GPIO_OUTPUT_SET) != 0);
-        pinmode = IOPORT_CFG_PORT_DIRECTION_OUTPUT;
+        if ((cfgset & GPIO_OUTPUT_SET) != 0) {
+          pinmode |= IOPORT_CFG_PORT_OUTPUT_HIGH;
+        }
         break;
 
       case GPIO_ALT:        /* Alternate function mode */
