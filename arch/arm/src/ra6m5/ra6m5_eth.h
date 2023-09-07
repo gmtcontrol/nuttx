@@ -26,7 +26,6 @@
  ****************************************************************************/
 
 #include <nuttx/config.h>
-#include <nuttx/wdog.h>
 
 #include "arm_internal.h"
 #include "chip.h"
@@ -42,8 +41,7 @@
 /* Definitions for use with ra6m5_phy_boardinitialize */
 
 #define RA6M5_NETHERNET 1
-
-#define EMAC0_INTF 0
+#define EMAC0_INTF      0
 
 #ifndef __ASSEMBLY__
 
@@ -76,22 +74,6 @@ extern "C"
 
 #ifdef CONFIG_RA6M5_EMAC0
 int ra6m5_ethinitialize(int intf);
-
-/****************************************************************************
- * Function: ra6m5_txtimeout_expiry
- *
- * Description:
- *   txtimeout timer
- *
- * Input Parameters:
- *   arg  - Input argument
- *
- * Returned Value:
- *  None
- *
- ****************************************************************************/
-
-void ra6m5_txtimeout_expiry(wdparm_t arg);
 #endif
 
 #undef EXTERN

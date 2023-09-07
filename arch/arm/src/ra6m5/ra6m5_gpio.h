@@ -128,7 +128,7 @@
 #  define GPIO_AF20                 (20 << GPIO_AF_SHIFT)       /* USBHS/GPT2 peripheral pin */
 #  define GPIO_AF21                 (21 << GPIO_AF_SHIFT)       /* SDMMC/GPT3 peripheral pin */
 #  define GPIO_AF22                 (22 << GPIO_AF_SHIFT)       /* Ethernet MMI/GPT4 peripheral pin */
-#  define GPIO_AF23                 (23 << GPIO_AF_SHIFT)       /* Ethernet RMMI peripheral pin */
+#  define GPIO_AF23                 (23 << GPIO_AF_SHIFT)       /* Ethernet RMII peripheral pin */
 #  define GPIO_AF24                 (24 << GPIO_AF_SHIFT)       /* PDC peripheral pin */
 #  define GPIO_AF25                 (25 << GPIO_AF_SHIFT)       /* Graphics LCD/CAC peripheral pin */
 #  define GPIO_AF26                 (26 << GPIO_AF_SHIFT)       /* debug trace peripheral pin */

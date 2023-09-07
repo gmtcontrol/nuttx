@@ -41,6 +41,8 @@
 #include <nuttx/irq.h>
 #include <nuttx/queue.h>
 #include <nuttx/wqueue.h>
+#include <nuttx/wdog.h>
+#include <nuttx/signal.h>
 #include <nuttx/net/phy.h>
 #include <nuttx/net/mii.h>
 #include <nuttx/net/netdev.h>
@@ -55,7 +57,6 @@
 
 #include "ra6m5_eth.h"
 #include "ra6m5_rcc.h"
-#include "ra6m5_agt0.h"
 
 #include <arch/board/board.h>
 
@@ -65,11 +66,64 @@
  * Pre-processor Definitions
  ****************************************************************************/
 
-#define AGT0_TICKFREQ             (10)            /* 10Hz tick frequency */
-#define AGT0_CMTW0_DIV_VALUE      (128)
+/* Timing *******************************************************************/
 
-#define AGT0_COUNT_VALUE_FOR_TXPOLL     ((g_clock_freq[RA6M5_CLOCKS_SOURCE_PCLKB] / AGT0_CMTW0_DIV_VALUE)/(AGT0_TICKFREQ))
-#define AGT0_COUNT_VALUE_FOR_TXTIMEOUT  (((g_clock_freq[RA6M5_CLOCKS_SOURCE_PCLKB] / AGT0_CMTW0_DIV_VALUE)/(AGT0_TICKFREQ))*60)
+/* TX timeout = 1 minute */
+
+#define RA6M5_TXTIMEOUT   (60*CLK_TCK)
+#define MII_MAXPOLLS      (0x1ffff)
+#define LINK_WAITUS       (500*1000)
+#define LINK_NLOOPS       (10)
+
+/* PHY definitions.
+ *
+ * The selected PHY must be selected from the drivers/net/Kconfig PHY menu.
+ * A description of the PHY must be provided here.  That description must
+ * include:
+ *
+ * 1. BOARD_PHY_NAME: A PHY name string (for debug output),
+ * 2. BOARD_PHYID1 and BOARD_PHYID2: The PHYID1 and PHYID2 values (from
+ *    include/nuttx/net/mii.h)
+ * 3. BOARD_PHY_STATUS:  The address of the status register to use when
+ *    querying link status (from include/nuttx/net/mii.h)
+ * 4. BOARD_PHY_ISDUPLEX:  A macro that can convert the status register
+ *    value into a boolean: true=duplex mode, false=half-duplex mode
+ * 5. BOARD_PHY_10BASET:  A macro that can convert the status register
+ *    value into a boolean: true=10Base-T, false=Not 10Base-T
+ * 6. BOARD_PHY_100BASET:  A macro that can convert the status register
+ *    value into a boolean: true=100Base-T, false=Not 100Base-T
+ *
+ */
+
+#if defined(CONFIG_ETH0_PHY_KSZ8041)
+#  define BOARD_PHY_NAME        "KSZ8041"
+#  define BOARD_PHYID1          MII_PHYID1_KSZ8041
+#  define BOARD_PHYID2          MII_PHYID2_KSZ8041
+#  define BOARD_PHY_STATUS      MII_KSZ8041_PHYCTRL2
+#  define BOARD_PHY_10BASET(s)  (((s) & MII_PHYCTRL2_MODE_10HDX) != 0)
+#  define BOARD_PHY_100BASET(s) (((s) & MII_PHYCTRL2_MODE_100HDX) != 0)
+#  define BOARD_PHY_ISDUPLEX(s) (((s) & MII_PHYCTRL2_MODE_DUPLEX) != 0)
+#  define MII_INT_REG           MII_KSZ8041_INT
+#  define MII_INT_SETEN         MII_KSZ80X1_INT_LDEN | MII_KSZ80X1_INT_LUEN
+#  define MII_INT_CLREN         0
+#  define MII_INT_LINK_SHIFT    8
+#  define MII_INT_LINK_STAT     (1 << MII_INT_LINK_SHIFT)
+#elif defined(CONFIG_ETH0_PHY_KSZ8081)
+#  define BOARD_PHY_NAME        "KSZ8081"
+#  define BOARD_PHYID1          MII_PHYID1_KSZ8081
+#  define BOARD_PHYID2          MII_PHYID2_KSZ8081
+#  define BOARD_PHY_STATUS      MII_KSZ8081_PHYCTRL1
+#  define BOARD_PHY_10BASET(s)  (((s) & MII_PHYCTRL1_MODE_10HDX) != 0)
+#  define BOARD_PHY_100BASET(s) (((s) & MII_PHYCTRL1_MODE_100HDX) != 0)
+#  define BOARD_PHY_ISDUPLEX(s) (((s) & MII_PHYCTRL1_MODE_DUPLEX) != 0)
+#  define MII_INT_REG           MII_KSZ8081_INT
+#  define MII_INT_SETEN         MII_KSZ80X1_INT_LDEN | MII_KSZ80X1_INT_LUEN
+#  define MII_INT_CLREN         0
+#  define MII_INT_LINK_SHIFT    8
+#  define MII_INT_LINK_STAT     (1 << MII_INT_LINK_SHIFT)
+#else
+#  error "Unrecognized or missing PHY selection"
+#endif
 
 #if RA6M5_NETHERNET > 1
 #  error "Logic to support multiple Ethernet interfaces is incomplete"
@@ -331,10 +385,6 @@
 
 #define NX_ALIGN32 aligned_data(32)
 
-#define RA6M5_MAC_ADDRL 0xfc030201
-#define RA6M5_MAC_ADDRH 0x00000025
-
-
 /****************************************************************************
  * Public Variables
  ****************************************************************************/
@@ -388,6 +438,7 @@ struct ra6m5_ethmac_s
   uint8_t              ifup    : 1; /* true:ifup false:ifdown */
   uint8_t              mbps100 : 1; /* 100MBps operation (vs 10 MBps) */
   uint8_t              fduplex : 1; /* Full (vs. half) duplex */
+  struct wdog_s        txtimeout;   /* TX timeout timer */
   struct work_s        irqwork;     /* For deferring interrupt work to the work queue */
   struct work_s        pollwork;    /* For deferring poll work to the work queue */
 
@@ -480,9 +531,10 @@ static void ra6m5_txdone(struct ra6m5_ethmac_s *priv);
 static void ra6m5_interrupt_work(void *arg);
 static int  ra6m5_interrupt(int irq, void *context, void *arg);
 
-/* Timer expirations */
+/* Watchdog timer expirations */
 
 static void ra6m5_txtimeout_work(void *arg);
+static void ra6m5_txtimeout_expiry(wdparm_t arg);
 
 /* NuttX callback functions */
 
@@ -511,7 +563,7 @@ static void ra6m5_rxdescinit(struct ra6m5_ethmac_s *priv);
 /* PHY Initialization */
 
 #if defined(CONFIG_NETDEV_PHY_IOCTL) && defined(CONFIG_ARCH_PHY_INTERRUPT)
-static void  ra6m5_phyintenable(bool enable);
+static void ra6m5_phyintenable(bool enable);
 #endif
 #if defined(CONFIG_ARCH_PHY_INTERRUPT)
 int arch_phy_irq(const char *intf, xcpt_t handler, void *arg,
@@ -1008,10 +1060,11 @@ static int ra6m5_transmit(struct ra6m5_ethmac_s *priv)
 
   ra6m5_enableint(priv, ETHD_EESIPR_TCIP);
 
-  /* Setup the TX timeout (perhaps restarting the timer) */
+  /* Setup the TX timeout watchdog (perhaps restarting the timer) */
 
-  ra6m5_agt0_start(ra6m5_agt0_timeout, 
-                  AGT0_COUNT_VALUE_FOR_TXTIMEOUT);
+  wd_start(&priv->txtimeout, RA6M5_TXTIMEOUT,
+           ra6m5_txtimeout_expiry, (wdparm_t)priv);
+
   return OK;
 }
 
@@ -1749,7 +1802,7 @@ static void ra6m5_txdone(struct ra6m5_ethmac_s *priv)
     {
       /* Cancel the TX timeout */
 
-      ra6m5_agt0_stop(ra6m5_agt0_timeout);
+      wd_cancel(&priv->txtimeout);
 
       /* And disable further TX interrupts. */
 
@@ -1800,34 +1853,26 @@ static void ra6m5_interrupt_work(void *arg)
 
   ethsr  = ra6m5_getreg(RA6M5_ETH_ECSR);
   ethsr  &= ra6m5_getreg(RA6M5_ETH_ECSIPR);
-  if ((ethsr & ETH_ECSR_LCHNG) != 0)
-    {
-      regval  = ra6m5_getreg(RA6M5_ETH_ECSR);
-      regval |= ((ETH_ECSR_LCHNG)); /* Write 1 to clear flag */
-      ra6m5_putreg(regval, RA6M5_ETH_ECSR);
 
 #if defined(CONFIG_ARCH_PHY_INTERRUPT)
-    phyreg_read_status = ra6m5_phyread(priv->phyaddr,
-                                         PHY_STS_READ_REG, &phyreg);
-      if (OK == phyreg_read_status)
-        {
-          regval = (uint32_t)(phyreg & PHY_STS_BIT_MASK)
-                    >> PHY_STS_SHIFT_COUNT;
-        }
-
-      if (regval != priv->prevlinkstatus) /* Check link status by 0th bit */
-        {
-          /* Link UP or DOWN status */
-
-          if (phylinknotification.phandler != NULL)
-            {
-              phylinknotification.phandler(irqno, NULL,
-                                           phylinknotification.pclient);
-              priv->prevlinkstatus = regval;
-            }
-        }
-#endif
+  phyreg_read_status = ra6m5_phyread(priv->phyaddr, BOARD_PHY_STATUS, &phyreg);
+  if (OK == phyreg_read_status)
+    {
+      regval = (uint32_t)(phyreg & MII_INT_LINK_STAT) >> MII_INT_LINK_SHIFT;
     }
+
+    if (regval != priv->prevlinkstatus) /* Check link status by 0th bit */
+      {
+        /* Link UP or DOWN status */
+
+        if (phylinknotification.phandler != NULL)
+          {
+            phylinknotification.phandler(irqno, NULL,
+                                          phylinknotification.pclient);
+            priv->prevlinkstatus = regval;
+          }
+      }
+#endif
 
   /* Get the interrupt status bits (ETHERC/EDMAC interrupt status check ) */
 
@@ -1928,7 +1973,7 @@ static int ra6m5_interrupt(int irq, void *context, void *arg)
            * expiration and the deferred interrupt processing.
            */
 
-          ra6m5_agt0_stop(ra6m5_agt0_timeout);
+          wd_cancel(&priv->txtimeout);
         }
 
       /* Schedule to perform the interrupt processing on the worker thread. */
@@ -2106,7 +2151,7 @@ static int ra6m5_ifdown(struct net_driver_s *dev)
 
   /* Cancel the TX timeout timers */
 
-  ra6m5_agt0_stop(ra6m5_agt0_timeout);
+  wd_cancel(&priv->txtimeout);
 
   /* Put the EMAC in its reset, non-operational state.
    * This should be a known configuration that will guarantee
@@ -2467,6 +2512,9 @@ static void ra6m5_rxdescinit(struct ra6m5_ethmac_s *priv)
 #ifdef CONFIG_NETDEV_IOCTL
 static int ra6m5_ioctl(struct net_driver_s *dev, int cmd, unsigned long arg)
 {
+#if defined(CONFIG_NETDEV_PHY_IOCTL) && defined(CONFIG_ARCH_PHY_INTERRUPT)
+  struct ra6m5_ethmac_s *priv = (struct ra6m5_ethmac_s *)dev->d_private;
+#endif
   int ret;
 
   switch (cmd)
@@ -2546,16 +2594,29 @@ static int ra6m5_ioctl(struct net_driver_s *dev, int cmd, unsigned long arg)
 #if defined(CONFIG_NETDEV_PHY_IOCTL) && defined(CONFIG_ARCH_PHY_INTERRUPT)
 static void ra6m5_phyintenable(bool enable)
 {
+  struct ra6m5_ethmac_s *priv = &g_rx65nethmac[0];
   uint32_t regval;
+  uint16_t phyval;
+  int ret;
+
   regval  = ra6m5_getreg(RA6M5_ETH_ECSR);
   regval |= ((ETH_ECSR_LCHNG)); /* Write 1 to clear flag */
   ra6m5_putreg(regval, RA6M5_ETH_ECSR);
 
-  if (enable)
+  ret = ra6m5_phyread(priv->phyaddr, MII_INT_REG, &phyval);
+  if (ret == OK)
     {
-    }
-  else
-    {
+      /* Enable link up/down interrupts */
+      if (enable)
+        {
+          ra6m5_phywrite(priv->phyaddr, MII_INT_REG, (phyval & ~MII_INT_CLREN) | MII_INT_SETEN);
+        }
+
+      /* Disable link up/down interrupts */
+      else
+        {
+          ra6m5_phywrite(priv->phyaddr, MII_INT_REG, (phyval & ~MII_INT_CLREN));
+        }
     }
 }
 #endif
@@ -2631,6 +2692,7 @@ int arch_phy_irq(const char *intf, xcpt_t handler, void *arg,
    * used for all other interrupt as well.
    */
 
+  struct ra6m5_ethmac_s *priv = NULL;
   irqstate_t flags;
   phy_enable_t enabler;
 
@@ -2642,6 +2704,7 @@ int arch_phy_irq(const char *intf, xcpt_t handler, void *arg,
   if (strcmp(intf, RA6M5_EMAC0_DEVNAME) == 0)
     {
       phyinfo("Select EMAC0\n");
+      priv = &g_rx65nethmac[0];
     }
   else
     {
@@ -2650,7 +2713,11 @@ int arch_phy_irq(const char *intf, xcpt_t handler, void *arg,
     }
 
   flags = enter_critical_section();
-  ra6m5_phyintenable(false);
+
+  if (priv != NULL)
+    {
+      ra6m5_phyintenable(false);
+    }
 
   /* Configure the interrupt */
 
@@ -2742,24 +2809,6 @@ void phy_start_autonegotiate(struct ra6m5_ethmac_s *priv, uint8_t pause)
 
 void ra6m5_power_on_control(void)
 {
-  /* Configure power control pins */
-
-  ra6m5_configgpio(GPIO_ETH_PWR);
-  ra6m5_configgpio(GPIO_ETH_RST);
-  ra6m5_configgpio(GPIO_ETH_INT);
-
-  /* Configure RMII pins */
-
-  ra6m5_configgpio(GPIO_ETH_MDC);
-  ra6m5_configgpio(GPIO_ETH_MDIO);
-  ra6m5_configgpio(GPIO_ETH_REFCLKI);
-  ra6m5_configgpio(GPIO_ETH_TXD0);
-  ra6m5_configgpio(GPIO_ETH_TXD1);
-  ra6m5_configgpio(GPIO_ETH_TX_EN);
-  ra6m5_configgpio(GPIO_ETH_RXD0);
-  ra6m5_configgpio(GPIO_ETH_RXD1);
-  ra6m5_configgpio(GPIO_ETH_RX_ER);
-  ra6m5_configgpio(GPIO_ETH_CRS_DV);
 }
 
 /****************************************************************************
@@ -3264,27 +3313,83 @@ void ra6m5_ether_interrupt_init(void)
 
 static int ra6m5_phyinit(struct ra6m5_ethmac_s *priv)
 {
-  uint16_t id1, id2;
-  uint32_t count;
+  uint32_t count = 0;
+  uint8_t  phyaddr;
   uint16_t reg;
+  int retries;
   int ret;
-  count = 0;
 
-  for (priv->phyaddr = 0; priv->phyaddr < 32; priv->phyaddr++)
-  {
-      ra6m5_phyread(priv->phyaddr, PHY_REG_IDENTIFIER1, &id1);
-      ra6m5_phyread(priv->phyaddr, PHY_REG_IDENTIFIER2, &id2);
+  /* Loop (potentially infinitely?) until we successfully communicate with
+   * the PHY.
+   */
 
-      if (id1 == 0x0022) 
-      {
-        break;
-      }
-  }
+  for (phyaddr = 0; phyaddr < 32; phyaddr++)
+    {
+      ninfo("%s: Try phyaddr: %u\n", BOARD_PHY_NAME, phyaddr);
 
-  if (priv->phyaddr == 32) 
-  {
-    return -ENODEV;
-  }
+      /* Try to read PHYID1 few times using this address */
+
+      retries = 0;
+      do
+        {
+          nxsig_usleep(LINK_WAITUS);
+          ninfo("%s: Read PHYID1, retries=%d\n",
+                BOARD_PHY_NAME, retries + 1);
+          reg = 0xffff;
+          ret = ra6m5_phyread(phyaddr, MII_PHYID1, &reg);
+        }
+      while ((ret < 0 || reg == 0xffff) && ++retries < 3);
+
+      /* If we successfully read anything then break out, using this PHY
+       * address
+       */
+
+      if (retries < 3)
+        {
+          break;
+        }
+    }
+
+  if (phyaddr >= 32)
+    {
+      nerr("ERROR: Failed to read PHYID1 at any address\n");
+      return -ENOENT;
+    }
+
+  ninfo("%s: Using PHY address %u\n", BOARD_PHY_NAME, phyaddr);
+  priv->phyaddr = phyaddr;
+
+  /* Verify PHYID1.  Compare OUI bits 3-18 */
+
+  ninfo("%s: PHYID1: %04x\n", BOARD_PHY_NAME, reg);
+  if (reg != BOARD_PHYID1)
+    {
+      nerr("ERROR: PHYID1=%04x incorrect for %s.  Expected %04x\n",
+           reg, BOARD_PHY_NAME, BOARD_PHYID1);
+      return -ENXIO;
+    }
+
+  /* Read PHYID2 */
+
+  ret = ra6m5_phyread(phyaddr, MII_PHYID2, &reg);
+  if (ret < 0)
+    {
+      nerr("ERROR: Failed to read %s PHYID2: %d\n", BOARD_PHY_NAME, ret);
+      return ret;
+    }
+
+  ninfo("%s: PHYID2: %04x\n", BOARD_PHY_NAME, reg);
+
+  /* Verify PHYID2:  Compare OUI bits 19-24 and the 6-bit model number
+   * (ignoring the 4-bit revision number).
+   */
+
+  if ((reg & 0xfff0) != (BOARD_PHYID2 & 0xfff0))
+    {
+      nerr("ERROR: PHYID2=%04x incorrect for %s.  Expected %04x\n",
+           (reg & 0xfff0), BOARD_PHY_NAME, (BOARD_PHYID2 & 0xfff0));
+      return -ENXIO;
+    }
 
 #ifdef CONFIG_RA6M5_EMAC0_AUTONEG
   /*  Software Reset the PHY */
@@ -3341,7 +3446,7 @@ static int ra6m5_phyinit(struct ra6m5_ethmac_s *priv)
     }
 
 #ifdef CONFIG_RA6M5_EMAC0_PHYSR_ALTCONFIG
-  ret = ra6m5_phyread(priv->phyaddr, PHY_STS_REG, &reg);
+  ret = ra6m5_phyread(priv->phyaddr, CONFIG_RA6M5_PHYSR, &reg);
   switch (reg & CONFIG_RA6M5_EMAC0_PHYSR_ALTMODE)
     {
       default:
@@ -3365,10 +3470,58 @@ static int ra6m5_phyinit(struct ra6m5_ethmac_s *priv)
         priv->mbps100 = 1;
         break;
     }
-#endif
-#endif
+#else
+  if ((reg & CONFIG_RA6M5_EMAC0_PHYSR_FULLDUPLEX) != 0)
+    {
+      priv->fduplex = 1;
+    }
+
+  if ((reg & CONFIG_RA6M5_EMAC0_PHYSR_100MBPS) != 0)
+    {
+      priv->mbps100 = 1;
+    }
+#endif /* CONFIG_RA6M5_EMAC0_PHYSR_ALTCONFIG */
+#endif /* CONFIG_RA6M5_EMAC0_AUTONEG */
 
   return ret;
+}
+
+/****************************************************************************
+ * Function: ra6m5_ethgpioconfig
+ *
+ * Description:
+ *  Configure GPIOs for the Ethernet interface.
+ *
+ * Input Parameters:
+ *   priv - A reference to the private driver state structure
+ *
+ * Returned Value:
+ *   None.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
+static void ra6m5_ethgpioconfig(struct ra6m5_ethmac_s *priv)
+{
+  /* Configure power control pins */
+
+  ra6m5_configgpio(GPIO_ETH_PWR);
+  ra6m5_configgpio(GPIO_ETH_RST);
+  ra6m5_configgpio(GPIO_ETH_INT);
+
+  /* Configure RMII pins */
+
+  ra6m5_configgpio(GPIO_ETH_MDC);
+  ra6m5_configgpio(GPIO_ETH_MDIO);
+  ra6m5_configgpio(GPIO_ETH_REFCLKI);
+  ra6m5_configgpio(GPIO_ETH_TXD0);
+  ra6m5_configgpio(GPIO_ETH_TXD1);
+  ra6m5_configgpio(GPIO_ETH_TX_EN);
+  ra6m5_configgpio(GPIO_ETH_RXD0);
+  ra6m5_configgpio(GPIO_ETH_RXD1);
+  ra6m5_configgpio(GPIO_ETH_RX_ER);
+  ra6m5_configgpio(GPIO_ETH_CRS_DV);
 }
 
 /****************************************************************************
@@ -3584,7 +3737,7 @@ static int ra6m5_ethconfig(struct ra6m5_ethmac_s *priv)
     }
 
   /* Initialize the PHY selection Set port connect
-   * Currently we are using MII
+   * Currently we are using RMII
    */
 
   ra6m5_ether_set_phy_mode(PHY_RMII_SET_MODE);
@@ -3789,12 +3942,12 @@ int ra6m5_ethinitialize(int intf)
   /* Initialize hardware mac address */
 
   uint8_t mac[6];
-  mac[0] = RA6M5_MAC_ADDRL & 0xff;
-  mac[1] = (RA6M5_MAC_ADDRL & 0xff00) >> 8;
-  mac[2] = (RA6M5_MAC_ADDRL & 0xff0000) >> 16;
-  mac[3] = (RA6M5_MAC_ADDRL & 0xff000000) >> 24;
-  mac[4] = RA6M5_MAC_ADDRH & 0xff;
-  mac[5] = (RA6M5_MAC_ADDRH & 0xff00) >> 8;
+  mac[0] = 0x00;
+  mac[1] = 0x25;
+  mac[2] = 0xfc;
+  mac[3] = 0x01;
+  mac[4] = 0xaa;
+  mac[5] = 0x55;
 
   ninfo("intf: %d\n", intf);
 
@@ -3841,14 +3994,13 @@ int ra6m5_ethinitialize(int intf)
   priv->dev.d_mac.ether.ether_addr_octet[4] =  mac[4];
   priv->dev.d_mac.ether.ether_addr_octet[5] =  mac[5];
 
+  /* Configure GPIO pins to support Ethernet */
+
+  ra6m5_ethgpioconfig(priv);
+
   /* Enable selected ETHERC/EDMAC Channel. */
 
   modifyreg32(RA6M5_MSTP_REG(RA6M5_MSTP_MSTPCRB_OFFSET), MSTP_MSTPCRB_EMAC, 0);
-
-  /* Create timer for timing polling for and timing of transmissions */
-
-  ra6m5_agt0_create(AGT0_COUNT_VALUE_FOR_TXPOLL, 
-                    AGT0_COUNT_VALUE_FOR_TXTIMEOUT);
 
   /* Attach the IRQ to the driver */
 

@@ -417,6 +417,7 @@ config RA6M5_EMAC0
 	default n
 	select RA6M5_EMAC
 	select NETDEVICES
+	select NETDEV_PHY_IOCTL
 	select ARCH_HAVE_PHY
 		
 menu "EMAC device driver options"
@@ -581,14 +582,14 @@ if !RA6M5_EMAC0_PHYSR_ALTCONFIG
 
 config RA6M5_EMAC0_PHYSR_SPEED
 	hex "PHY Speed Mask"
-	default 0x7800
+	default 0xF800
 	---help---
 		This must be provided if RA6M5_EMAC0_AUTONEG is defined.  This provides bit mask
 		for isolating the 10 or 100MBps speed indication.
 
 config RA6M5_EMAC0_PHYSR_100MBPS
 	hex "PHY 100Mbps Speed Value"
-	default 0x6000
+	default 0xE000
 	---help---
 		This must be provided if RA6M5_EMAC0_AUTONEG is defined.  This provides the value
 		of the speed bit(s) indicating 100MBps speed.

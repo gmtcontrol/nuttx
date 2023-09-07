@@ -46,13 +46,6 @@
 
 /* APB1 Base Addresses ******************************************************/
 
-#define RA6M5_AGT0_BASE         0x400E8000UL
-#define RA6M5_AGT1_BASE         0x400E8100UL
-#define RA6M5_AGT2_BASE         0x400E8200UL
-#define RA6M5_AGT3_BASE         0x400E8300UL
-#define RA6M5_AGT4_BASE         0x400E8400UL
-#define RA6M5_AGT5_BASE         0x400E8500UL
-
 #define RA6M5_GPT0_BASE         0x40169000UL
 #define RA6M5_GPT1_BASE         0x40169100UL
 #define RA6M5_GPT2_BASE         0x40169200UL

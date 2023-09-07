@@ -53,7 +53,7 @@ CHIP_CSRCS += ra6m5_dumpgpio.c
 endif
 
 ifeq ($(CONFIG_RA6M5_EMAC),y)
-CHIP_CSRCS += ra6m5_eth.c ra6m5_agt0.c
+CHIP_CSRCS += ra6m5_eth.c
 endif
 
 ifeq ($(CONFIG_RA6M5_RTC),y)

@@ -64,7 +64,7 @@ void ra6m5_agt0_create(uint32_t txpoll_time, uint32_t txtimeout_time)
   /* Stop AGT0 count */
 
   putreg8(4, RA6M5_AGT0_AGTCR);
-  up_udelay(100);
+  up_udelay(10);
 
   /* Wait till stop */
 
@@ -72,18 +72,13 @@ void ra6m5_agt0_create(uint32_t txpoll_time, uint32_t txtimeout_time)
     regval = getreg8(RA6M5_AGT0_AGTCR);
   } while (regval & AGT_AGTCR_TCSTF);
 
-  /* Set timer I/O control register */
-
-  putreg8(AGT_AGTCMSR_TCMEA | 
-          AGT_AGTCMSR_TCMEB, RA6M5_AGT0_AGTCMSR);
-
   /* Set output compare register A */
 
-  putreg16(txpoll_time, RA6M5_AGT0_AGTCMA);
+  putreg16(0x10000 - txpoll_time, RA6M5_AGT0_AGTCMA);
 
   /* Set output compare register B */
 
-  putreg16(txtimeout_time, RA6M5_AGT0_AGTCMB);
+  putreg16(0x10000 - txtimeout_time, RA6M5_AGT0_AGTCMB);
 
   /* Set control registers */
 
@@ -114,7 +109,7 @@ void ra6m5_agt0_start(uint8_t type, uint32_t timeout)
 
   if (type == ra6m5_agt0_txpoll)
     {
-      putreg16(getreg16(RA6M5_AGT0_AGT) + timeout, RA6M5_AGT0_AGTCMA);
+      putreg16(timeout, RA6M5_AGT0_AGTCMA);
 
       /* Enabling Compare Match A */
 
@@ -125,7 +120,7 @@ void ra6m5_agt0_start(uint8_t type, uint32_t timeout)
 
   if (type == ra6m5_agt0_timeout)
     {
-      putreg16(getreg16(RA6M5_AGT0_AGT) + timeout, RA6M5_AGT0_AGTCMB);
+      putreg16(timeout, RA6M5_AGT0_AGTCMB);
 
       /* Enabling Compare Match B */
 

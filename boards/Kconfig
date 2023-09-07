@@ -2404,6 +2404,7 @@ config ARCH_BOARD_B_U585I_IOT02A
 config ARCH_BOARD_GLC23X
 	bool "GMT GLC23x PLC"
 	depends on ARCH_CHIP_R7FA6M5BH3CFP
+	select ARCH_PHY_INTERRUPT
 	---help---
 		GMT Control Gen2 PLC featuring the R7FA6M5BH3CFP MCU. 
 		The R7FA6M5BH3CFP is a Cortex-M33 optimised for high performance 
