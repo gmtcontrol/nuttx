@@ -279,8 +279,11 @@ static struct ra6m5_spidev_s g_spi0dev =
     .ops    = &g_spi0ops,
   },
   .spibase  = RA6M5_SPI0_BASE,
-  .spiclock = SPI0_KERNEL_CLOCK_FREQ,
-  .irqrxi   = RA6M5_IRQ_SPI0,
+  .spiclock = 0,
+  .irqrxi   = RA6M5_IRQ_SPI0_RXI,
+  .irqtxi   = RA6M5_IRQ_SPI0_TXI,
+  .irqtei   = RA6M5_IRQ_SPI0_TEI,
+  .irqeri   = RA6M5_IRQ_SPI0_ERI,
 #ifdef CONFIG_RA6M5_SPI0_DMA
   .rxch     = DMAMAP_SPI0_RX,
   .txch     = DMAMAP_SPI0_TX,
@@ -351,8 +354,11 @@ static struct ra6m5_spidev_s g_spi1dev =
     .ops    = &g_spi1ops,
   },
   .spibase  = RA6M5_SPI1_BASE,
-  .spiclock = SPI1_KERNEL_CLOCK_FREQ,
-  .irqrxi   = RA6M5_IRQ_SPI1,
+  .spiclock = 0,
+  .irqrxi   = RA6M5_IRQ_SPI1_RXI,
+  .irqtxi   = RA6M5_IRQ_SPI1_TXI,
+  .irqtei   = RA6M5_IRQ_SPI1_TEI,
+  .irqeri   = RA6M5_IRQ_SPI1_ERI,
 #ifdef CONFIG_RA6M5_SPI1_DMA
   .rxch     = DMAMAP_SPI1_RX,
   .txch     = DMAMAP_SPI1_TX,
@@ -1986,6 +1992,49 @@ struct spi_dev_s *ra6m5_spibus_initialize(int bus)
   struct ra6m5_spidev_s *priv = NULL;
 
   irqstate_t flags = enter_critical_section();
+#ifdef CONFIG_RA6M5_SPI0
+  if (bus == 0)
+    {
+      /* Select SPI0 */
+
+      priv = &g_spi0dev;
+
+      /* Only configure if the bus is not already configured */
+
+      if (!priv->initialized)
+        {
+          /* Configure SPI1 pins: SCK, MISO, and MOSI */
+
+          ra6m5_configgpio(GPIO_SPI0_SCK);
+          ra6m5_configgpio(GPIO_SPI0_MISO);
+          ra6m5_configgpio(GPIO_SPI0_MOSI);
+
+          /* Configure chip select pins */
+
+          #ifdef GPIO_SPI0_SEL0
+          ra6m5_configgpio(GPIO_SPI0_SEL0);
+          #endif
+
+          #ifdef GPIO_SPI0_SEL1
+          ra6m5_configgpio(GPIO_SPI0_SEL1);
+          #endif
+
+          #ifdef GPIO_SPI0_SEL2
+          ra6m5_configgpio(GPIO_SPI0_SEL2);
+          #endif
+
+          #ifdef GPIO_SPI0_SEL3
+          ra6m5_configgpio(GPIO_SPI0_SEL3);
+          #endif
+
+          /* Set up default configuration: Master, 8-bit, etc. */
+
+          spi_bus_initialize(priv);
+          priv->initialized = true;
+        }
+    }
+  else
+#endif
 #ifdef CONFIG_RA6M5_SPI1
   if (bus == 1)
     {
@@ -2003,55 +2052,23 @@ struct spi_dev_s *ra6m5_spibus_initialize(int bus)
           ra6m5_configgpio(GPIO_SPI1_MISO);
           ra6m5_configgpio(GPIO_SPI1_MOSI);
 
-          /* Set up default configuration: Master, 8-bit, etc. */
+          /* Configure chip select pins */
 
-          spi_bus_initialize(priv);
-          priv->initialized = true;
-        }
-    }
-  else
-#endif
-#ifdef CONFIG_RA6M5_SPI2
-  if (bus == 2)
-    {
-      /* Select SPI2 */
+          #ifdef GPIO_SPI1_SEL0
+          ra6m5_configgpio(GPIO_SPI1_SEL0);
+          #endif
 
-      priv = &g_spi2dev;
+          #ifdef GPIO_SPI1_SEL1
+          ra6m5_configgpio(GPIO_SPI1_SEL1);
+          #endif
 
-      /* Only configure if the bus is not already configured */
+          #ifdef GPIO_SPI1_SEL2
+          ra6m5_configgpio(GPIO_SPI1_SEL2);
+          #endif
 
-      if (!priv->initialized)
-        {
-          /* Configure SPI2 pins: SCK, MISO, and MOSI */
-
-          ra6m5_configgpio(GPIO_SPI2_SCK);
-          ra6m5_configgpio(GPIO_SPI2_MISO);
-          ra6m5_configgpio(GPIO_SPI2_MOSI);
-
-          /* Set up default configuration: Master, 8-bit, etc. */
-
-          spi_bus_initialize(priv);
-          priv->initialized = true;
-        }
-    }
-  else
-#endif
-#ifdef CONFIG_RA6M5_SPI3
-  if (bus == 3)
-    {
-      /* Select SPI3 */
-
-      priv = &g_spi3dev;
-
-      /* Only configure if the bus is not already configured */
-
-      if (!priv->initialized)
-        {
-          /* Configure SPI3 pins: SCK, MISO, and MOSI */
-
-          ra6m5_configgpio(GPIO_SPI3_SCK);
-          ra6m5_configgpio(GPIO_SPI3_MISO);
-          ra6m5_configgpio(GPIO_SPI3_MOSI);
+          #ifdef GPIO_SPI1_SEL3
+          ra6m5_configgpio(GPIO_SPI1_SEL3);
+          #endif
 
           /* Set up default configuration: Master, 8-bit, etc. */
 

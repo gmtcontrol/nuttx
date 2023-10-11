@@ -410,15 +410,17 @@ int up_rtc_initialize(void)
   up_disable_irq(RA6M5_IRQ_RTC_PERIOD);
   up_disable_irq(RA6M5_IRQ_RTC_CARRY);
 
-  /* Set RTC clock source as sub clock */
+  /* Set RTC clock source as LOCO */
 
   regval = ra6m5_rtc_getreg(RA6M5_RTC_RCR4_OFFSET);
-  regval &= ~RTC_RCR4_RCKSEL;
+  regval |= RTC_RCR4_RCKSEL;
   ra6m5_rtc_putreg(RA6M5_RTC_RCR4_OFFSET, regval);
 
   /* Stop all counters */
 
-  ra6m5_rtc_putreg(RA6M5_RTC_RCR2_OFFSET, 0);
+  regval = ra6m5_rtc_getreg(RA6M5_RTC_RCR2_OFFSET);
+  regval &= ~RTC_RCR2_START;
+  ra6m5_rtc_putreg(RA6M5_RTC_RCR2_OFFSET, regval);
   while ((regval = ra6m5_rtc_getreg(RA6M5_RTC_RCR2_OFFSET)) & RTC_RCR2_START)
     {
       /* Ensure the clock is stopped while configuring it. */

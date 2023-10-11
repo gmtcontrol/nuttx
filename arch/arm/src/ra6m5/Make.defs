@@ -72,6 +72,14 @@ ifeq ($(CONFIG_RA6M5_DTC),y)
 CHIP_CSRCS += ra6m5_dtc.c
 endif
 
+ifeq ($(CONFIG_RA6M5_QSPI),y)
+CHIP_CSRCS += ra6m5_qspi.c
+endif
+
+ifeq ($(CONFIG_RA6M5_OSPI),y)
+CHIP_CSRCS += ra6m5_ospi.c
+endif
+
 # Required chip type specific files
 
 ifeq ($(CONFIG_RA6M5_R7FA6M5BX),y)

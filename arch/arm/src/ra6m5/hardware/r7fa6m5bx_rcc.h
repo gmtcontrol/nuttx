@@ -214,6 +214,7 @@
 #define MSTP_MSTPCRB_USBFS          (1 << 11)   /* Bit 11: Universal Serial Bus 2.0 FS Interface 0 Module Stop */
 #define MSTP_MSTPCRB_USBHS          (1 << 12)   /* Bit 12: Universal Serial Bus 2.0 HS Interface 0 Module Stop */
 #define MSTP_MSTPCRB_EMAC           (1 << 15)   /* Bit 15: ETHERC0 and EDMAC0 Module Stop */
+#define MSTP_MSTPCRB_OSPI           (1 << 16)   /* Bit 16: OSPI Module Stop */
 
 /* Module Stop Control Register D */
 

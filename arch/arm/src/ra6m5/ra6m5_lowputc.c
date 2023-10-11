@@ -43,6 +43,40 @@
 /* Select USART parameters for the selected console */
 
 #ifdef HAVE_CONSOLE
+#  if defined(CONFIG_SCI6_SERIAL_CONSOLE)
+#    define RA6M5_CONSOLE_BASE      RA6M5_SCI6_BASE
+#    define RA6M5_CONSOLE_BAUD      CONFIG_SCI6_BAUD
+#    define RA6M5_CONSOLE_BITS      CONFIG_SCI6_BITS
+#    define RA6M5_CONSOLE_PARITY    CONFIG_SCI6_PARITY
+#    define RA6M5_CONSOLE_2STOP     CONFIG_SCI6_2STOP
+#    define RA6M5_CONSOLE_TX        GPIO_SCI6_TX
+#    define RA6M5_CONSOLE_RX        GPIO_SCI6_RX
+#    ifdef CONFIG_SCI6_RS485
+#      define RA6M5_CONSOLE_RS485_DIR GPIO_SCI6_RS485_DIR
+#      if (CONFIG_SCI6_RS485_DIR_POLARITY == 0)
+#        define RA6M5_CONSOLE_RS485_DIR_POLARITY false
+#      else
+#        define RA6M5_CONSOLE_RS485_DIR_POLARITY true
+#      endif
+#    endif
+#  endif
+#  if defined(CONFIG_SCI7_SERIAL_CONSOLE)
+#    define RA6M5_CONSOLE_BASE      RA6M5_SCI7_BASE
+#    define RA6M5_CONSOLE_BAUD      CONFIG_SCI7_BAUD
+#    define RA6M5_CONSOLE_BITS      CONFIG_SCI7_BITS
+#    define RA6M5_CONSOLE_PARITY    CONFIG_SCI7_PARITY
+#    define RA6M5_CONSOLE_2STOP     CONFIG_SCI7_2STOP
+#    define RA6M5_CONSOLE_TX        GPIO_SCI7_TX
+#    define RA6M5_CONSOLE_RX        GPIO_SCI7_RX
+#    ifdef CONFIG_SCI7_RS485
+#      define RA6M5_CONSOLE_RS485_DIR GPIO_SCI7_RS485_DIR
+#      if (CONFIG_SCI7_RS485_DIR_POLARITY == 0)
+#        define RA6M5_CONSOLE_RS485_DIR_POLARITY false
+#      else
+#        define RA6M5_CONSOLE_RS485_DIR_POLARITY true
+#      endif
+#    endif
+#  endif
 #  if defined(CONFIG_SCI8_SERIAL_CONSOLE)
 #    define RA6M5_CONSOLE_BASE      RA6M5_SCI8_BASE
 #    define RA6M5_CONSOLE_BAUD      CONFIG_SCI8_BAUD

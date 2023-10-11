@@ -20,6 +20,14 @@ config ARCH_CHIP_R7FA6M5BH3CFP
 	---help---
 		RA6M5 Cortex M33, 2048 Kb FLASH, 512 Kb SRAM
 
+config ARCH_CHIP_R7FA6M5BH3CFB
+	bool "R7FA6M5BH3CFB"
+	select RA6M5_R7FA6M5BX
+	select RA6M5_FLASH_CONFIG_H
+	select RA6M5_IO_CONFIG_FB
+	---help---
+		RA6M5 Cortex M33, 2048 Kb FLASH, 512 Kb SRAM
+		
 endchoice # RA6M5 Chip Selection
 
 
@@ -323,11 +331,13 @@ config RA6M5_ADC1
 	default n
 
 config RA6M5_OSPI0
-	bool "OSPI0"
+	bool "OSPI Flash"
+	select RA6M5_OSPI
 	default n
 
 config RA6M5_QSPI0
-	bool "QSPI0"
+	bool "QSPI Flash"
+	select RA6M5_QSPI
 	default n
 	
 config RA6M5_SDHI

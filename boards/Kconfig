@@ -2409,6 +2409,15 @@ config ARCH_BOARD_GLC23X
 		GMT Control Gen2 PLC featuring the R7FA6M5BH3CFP MCU. 
 		The R7FA6M5BH3CFP is a Cortex-M33 optimised for high performance 
 		operation at up to 200MHz operation with 2048Kb Flash memory and 768Kb SRAM.
+
+config ARCH_BOARD_EK_RA6M5
+	bool "Evaluation Kit for RA6M5 MCU Group"
+	depends on ARCH_CHIP_R7FA6M5BH3CFB
+	select ARCH_PHY_INTERRUPT
+	---help---
+		Renesas RA6M5 Evaluation Kit featuring the R7FA6M5BH3CFB MCU. 
+		The R7FA6M5BH3CFB is a Cortex-M33 optimised for high performance 
+		operation at up to 200MHz operation with 2048Kb Flash memory and 768Kb SRAM.
 		
 config ARCH_BOARD_STM32L476VG_DISCO
 	bool "STMicro STM32L476VG -Discovery board"
@@ -3086,6 +3095,7 @@ config ARCH_BOARD
 	default "b-l475e-iot01a"            if ARCH_BOARD_B_L475E_IOT01A
 	default "b-u585i-iot02a"            if ARCH_BOARD_B_U585I_IOT02A
 	default "glc23x"            		if ARCH_BOARD_GLC23X
+	default "ek-ra6m5"            		if ARCH_BOARD_EK_RA6M5
 	default "stm32l476vg-disco"         if ARCH_BOARD_STM32L476VG_DISCO
 	default "stm32l476-mdk"             if ARCH_BOARD_STM32L476_MDK
 	default "stm32l4r9ai-disco"         if ARCH_BOARD_STM32L4R9AI_DISCO
@@ -3546,6 +3556,9 @@ source "boards/arm/stm32u5/b-u585i-iot02a/Kconfig"
 endif
 if ARCH_BOARD_GLC23X
 source "boards/arm/ra6m5/glc23x/Kconfig"
+endif
+if ARCH_BOARD_EK_RA6M5
+source "boards/arm/ra6m5/ek-ra6m5/Kconfig"
 endif
 if ARCH_BOARD_NUCLEO_L432KC
 source "boards/arm/stm32l4/nucleo-l432kc/Kconfig"

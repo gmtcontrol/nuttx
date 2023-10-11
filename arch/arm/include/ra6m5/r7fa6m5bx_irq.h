@@ -268,9 +268,23 @@
 #  define RA6M5_IRQ_SPI1_TXI    (RA6M5_SPI1_IRQBASE + RA6M5_TXI_IRQ_OFFSET) /* SPI1 Transmit data empty interrupt */
 #  define RA6M5_IRQ_SPI1_TEI    (RA6M5_SPI1_IRQBASE + RA6M5_TEI_IRQ_OFFSET) /* SPI1 Transmit end interrupt */
 #  define RA6M5_IRQ_SPI1_ERI    (RA6M5_SPI1_IRQBASE + RA6M5_ERI_IRQ_OFFSET) /* SPI1 Receive error interrupt */
-#  define RA6M5_IIC0_IRQBASE    (RA6M5_SPI1_IRQBASE + RA6M5_SCI_NIRQS)
+#  define RA6M5_QSPI_IRQBASE    (RA6M5_SPI1_IRQBASE + RA6M5_SCI_NIRQS)
 #else 
-#  define RA6M5_IIC0_IRQBASE    (RA6M5_SPI1_IRQBASE)
+#  define RA6M5_QSPI_IRQBASE    (RA6M5_SPI1_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_QSPI
+#  define RA6M5_IRQ_QSPI_INT    (RA6M5_QSPI_IRQBASE + 0) /* SPI1 Receive data full interrupt */
+#  define RA6M5_OSPI_IRQBASE    (RA6M5_QSPI_IRQBASE + 1)
+#else 
+#  define RA6M5_OSPI_IRQBASE    (RA6M5_QSPI_IRQBASE)
+#endif
+
+#ifdef CONFIG_RA6M5_OSPI
+#  define RA6M5_IRQ_QSPI_INT    (RA6M5_OSPI_IRQBASE + 0) /* SPI1 Receive data full interrupt */
+#  define RA6M5_IIC0_IRQBASE    (RA6M5_OSPI_IRQBASE + 1)
+#else 
+#  define RA6M5_IIC0_IRQBASE    (RA6M5_OSPI_IRQBASE)
 #endif
 
 #ifdef CONFIG_RA6M5_IIC0

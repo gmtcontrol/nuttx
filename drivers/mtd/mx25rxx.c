@@ -99,14 +99,15 @@
 
 /* JEDEC Read ID register values */
 
-#define MX25R_JEDEC_MANUFACTURER         0xc2  /* Macronix manufacturer ID */
+#define MX25R_JEDEC_MANUFACTURER          0xc2  /* Macronix manufacturer ID */
 #ifdef CONFIG_MX25RXX_LXX
-#  define MX25R_JEDEC_MEMORY_TYPE          0x20  /* MX25Lx memory type */
+#  define MX25R_JEDEC_MEMORY_TYPE         0x20  /* MX25Lx memory type */
 #else
-#  define MX25R_JEDEC_MEMORY_TYPE          0x28  /* MX25Rx memory type */
+#  define MX25R_JEDEC_MEMORY_TYPE         0x28  /* MX25Rx memory type */
 #endif
-#define MX25R_JEDEC_MX25R6435F_CAPACITY  0x17  /* MX25R6435F memory capacity */
-#define MX25R_JEDEC_MX25R8035F_CAPACITY  0x14  /* MX25R8035F memory capacity */
+#define MX25R_JEDEC_MX25L25645G_CAPACITY  0x19  /* MX25L25645G memory capacity */
+#define MX25R_JEDEC_MX25R6435F_CAPACITY   0x17  /* MX25R6435F memory capacity */
+#define MX25R_JEDEC_MX25R8035F_CAPACITY   0x14  /* MX25R8035F memory capacity */
 
 /* Supported chips parameters */
 
@@ -121,6 +122,18 @@
 #  define MX25R6435F_PAGE_SHIFT       (7)
 #else
 #  define MX25R6435F_PAGE_SHIFT       (8)
+#endif
+
+/* MX25L25645G (256 MB) memory capacity */
+
+#define MX25L25645G_SECTOR_SIZE     (4*1024)
+#define MX25L25645G_SECTOR_SHIFT    (12)
+#define MX25L25645G_SECTOR_COUNT    (1024)
+#define MX25L25645G_PAGE_SIZE       (256)
+#ifdef CONFIG_MX25RXX_PAGE128
+#  define MX25L25645G_PAGE_SHIFT    (7)
+#else
+#  define MX25L25645G_PAGE_SHIFT    (8)
 #endif
 
 /* Status register bit definitions */
@@ -849,6 +862,12 @@ int mx25rxx_readid(struct mx25rxx_dev_s *dev)
 
   switch (dev->cmdbuf[2])
     {
+      case MX25R_JEDEC_MX25L25645G_CAPACITY:
+        dev->sectorshift = MX25L25645G_SECTOR_SHIFT;
+        dev->pageshift   = MX25L25645G_PAGE_SHIFT;
+        dev->nsectors    = MX25L25645G_SECTOR_COUNT;
+        break;
+
       case MX25R_JEDEC_MX25R6435F_CAPACITY:
         dev->sectorshift = MX25R6435F_SECTOR_SHIFT;
         dev->pageshift   = MX25R6435F_PAGE_SHIFT;
