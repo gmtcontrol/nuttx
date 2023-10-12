@@ -1,0 +1,186 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+comment "STY32C2 Configuration Options"
+
+menu "STY32C2 Peripheral Support"
+
+# These are the peripheral selections proper
+
+config STY32C2_UART
+	bool
+	default n
+
+config STY32C2_UART0
+	bool "UART0"
+	default y
+	select UART0_SERIALDRIVER
+	select ARCH_HAVE_UART0
+	select ARCH_HAVE_SERIAL_TERMIOS
+	select STY32C2_UART
+
+config STY32C2_UART1
+	bool "UART1"
+	default n
+	select UART1_SERIALDRIVER
+	select ARCH_HAVE_UART1
+	select ARCH_HAVE_SERIAL_TERMIOS
+	select STY32C2_UART
+
+config STY32C2_UART2
+	bool "UART2"
+	default n
+	select UART2_SERIALDRIVER
+	select ARCH_HAVE_UART2
+	select ARCH_HAVE_SERIAL_TERMIOS
+	select STY32C2_UART
+
+config STY32C2_UART3
+	bool "UART3"
+	default n
+	select UART3_SERIALDRIVER
+	select ARCH_HAVE_UART3
+	select ARCH_HAVE_SERIAL_TERMIOS
+	select STY32C2_UART
+
+config STY32C2_UART4
+	bool "UART4"
+	default n
+	select UART4_SERIALDRIVER
+	select ARCH_HAVE_UART4
+	select ARCH_HAVE_SERIAL_TERMIOS
+	select STY32C2_UART
+
+config STY32C2_UART5
+	bool "UART5"
+	default n
+	select UART5_SERIALDRIVER
+	select ARCH_HAVE_UART5
+	select ARCH_HAVE_SERIAL_TERMIOS
+	select STY32C2_UART
+
+config STY32C2_UART6
+	bool "UART6"
+	default n
+	select UART6_SERIALDRIVER
+	select ARCH_HAVE_UART6
+	select ARCH_HAVE_SERIAL_TERMIOS
+	select STY32C2_UART
+
+config STY32C2_I2C
+	bool
+	default n
+
+config STY32C2_I2C0
+	bool "I2C0"
+	default n
+	select I2C
+	select I2C_DRIVER
+	select I2C_BITBANG
+	select STY32C2_I2C
+
+config STY32C2_I2C1
+	bool "I2C1"
+	default n
+	select I2C
+	select I2C_DRIVER
+	select I2C_BITBANG
+	select STY32C2_I2C
+
+config STY32C2_SPI
+	bool
+	default n
+
+config STY32C2_SPI0
+	bool "SPI0"
+	default n
+	select SPI
+	select SPI_DRIVER
+	select STY32C2_SPI
+
+config STY32C2_SPI1
+	bool "SPI1"
+	default n
+	select SPI
+	select SPI_DRIVER
+	select STY32C2_SPI
+
+config STY32C2_SPI2
+	bool "SPI2"
+	default n
+	select SPI
+	select SPI_DRIVER
+	select STY32C2_SPI
+
+config STY32C2_PWM
+	bool "PWM"
+	default n
+	select PWM
+	select PWM_MULTICHAN
+	select ARCH_HAVE_PWM_MULTICHAN
+
+config STY32C2_RTC
+	bool "RTC"
+	default n
+	select RTC
+
+config STY32C2_SDIO
+	bool "SDIO"
+	default n
+	select SCHED_HPWORK
+	select MMCSD
+	select MMCSD_SDIO
+	select SDIO_BLOCKSETUP
+	select ARCH_HAVE_SDIO
+	select SDIO_DMA
+
+config STY32C2_SDIO1
+	bool "Enable SDIO1"
+	default y if STY32C2_SDIO
+	select STY32C2_SDIO_DMA
+	depends on STY32C2_SDIO
+
+if STY32C2_SDIO1
+
+config STY32C2_IDMODE_FREQ
+	int "ID mode frequency"
+	default 400000
+	---help---
+		Initial, ID mode SD frequency
+
+config STY32C2_MMCXFR_FREQ
+	int "MMC transfer frequency"
+	default 25000000
+	---help---
+		Frequency to use for transferring data to/from an MMC card
+
+config STY32C2_SD4BIT_FREQ
+	int "SD 4-bit transfer frequency"
+	default 50000000
+	---help---
+		Frequency to use for transferring data to/from an SD card using all four data lines.
+
+endif
+
+config STY32C2_ETHMAC
+	bool "ETHMAC"
+	default n
+	select ARCH_HAVE_PHY
+	select ARCH_HAVE_NETDEV_STATISTICS
+	select NET
+	select NETDEVICES
+
+endmenu
+
+menu "STY32C2 EMAC device driver options"
+	depends on STY32C2_ETHMAC
+
+config STY32C2_EMAC_PHYADDR
+	int "PHY address"
+	default 1
+	---help---
+		The 5-bit address of the PHY on the board.  Default: 1
+
+endmenu # PHY interface

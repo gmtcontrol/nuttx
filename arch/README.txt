@@ -256,6 +256,7 @@ arch/risc-v
       arch/risc-v/include/fe310 and arch/risc-v/src/fe310
       arch/risc-v/include/k210 and arch/risc-v/src/k210
       arch/risc-v/include/litex and arch/risc-v/src/litex
+      arch/risc-v/include/sty32c2 and arch/risc-v/src/sty32c2
 
 arch/x86 - Intel x86 architectures
     This directory holds related, 32- and 64-bit architectures from
