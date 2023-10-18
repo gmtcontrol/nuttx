@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/sty32c2/sty32c2_head.S
+ * arch/risc-v/src/sty32c2/sty32c2_head_smp.S
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -111,13 +111,6 @@ __start:
   /* Flush TLB (does not make a difference really) */
 
   sfence.vma x0, x0
-
-  /* Initialize global pointer, global data */
-
-.option push
-.option norelax
-  la  gp, __global_pointer$
-.option pop
 
   /* To get g_cpu_basestack[mhartid], must get g_cpu_basestack first */
 

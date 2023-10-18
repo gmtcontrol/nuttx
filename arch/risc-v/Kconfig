@@ -48,13 +48,22 @@ config ARCH_CHIP_LITEX
 		Enjoy Digital LITEX VEXRISCV softcore processor (RV32IMA).
 
 config ARCH_CHIP_STY32C2
-	bool "Stalya LITEX VEXRISCV"
+	bool "Stalya VEXRISCV SMP"
 	select ARCH_RV32
 	select ARCH_RV_ISA_M
 	select ARCH_RV_ISA_A
+	select ARCH_HAVE_FPU
 	select ARCH_DCACHE
+	select ARCH_HAVE_MPU
+	select ARCH_HAVE_MMU
+	select ARCH_MMU_TYPE_SV32
+	select ARCH_HAVE_ADDRENV
+	select ARCH_NEED_ADDRENV_MAPPING
+	select ARCH_HAVE_TESTSET
+	select ARCH_HAVE_MULTICPU
+	select ARCH_HAVE_S_MODE
 	---help---
-	Stalya LITEX VEXRISCV softcore processor (RV32IMA).
+		Stalya VEXRISCV SMP softcore processor (RV32IMAF).
 		
 config ARCH_CHIP_BL602
 	bool "BouffaloLab BL602"
@@ -367,7 +376,7 @@ config RISCV_SEMIHOSTING_HOSTFS_CACHE_COHERENCE
 
 endif
 
-if ARCH_CHIP_LITEX || ARCH_CHIP_STY32C2
+if ARCH_CHIP_LITEX
 
 choice
 	prompt "LITEX Core Selection"

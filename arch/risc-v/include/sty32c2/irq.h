@@ -39,13 +39,13 @@
 
 #define STY32C2_IRQ_UART0    (RISCV_IRQ_EXT + 1)
 #define STY32C2_IRQ_TIMER0   (RISCV_IRQ_EXT + 2)
-#define STY32C2_IRQ_ETHMAC   (RISCV_IRQ_EXT + 3)
-#define STY32C2_IRQ_SDCARD   (RISCV_IRQ_EXT + 4)
-#define STY32C2_IRQ_GPIO     (RISCV_IRQ_EXT + 5)
+#define STY32C2_IRQ_UART1    (RISCV_IRQ_EXT + 3)
+#define STY32C2_IRQ_UART2    (RISCV_IRQ_EXT + 4)
+#define STY32C2_IRQ_SDCARD   (RISCV_IRQ_EXT + 5)
 
 /* The last hardware IRQ number */
 
-#define STY32C2_IRQ_LAST     (STY32C2_IRQ_GPIO)
+#define STY32C2_IRQ_LAST     (STY32C2_IRQ_SDCARD)
 
 /* Second level GPIO interrupts.  GPIO interrupts are decoded and dispatched
  * as a second level of decoding:  The first level dispatches to the GPIO

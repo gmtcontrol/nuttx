@@ -34,35 +34,29 @@
 #define STY32C2_CLINT_BASE          0xf0010000
 #define STY32C2_PLIC_BASE           0xf0c00000
 
-#define STY32C2_UART0_BASE          0xf0001000
-#define STY32C2_UART1_BASE          0xf000a000
-#define STY32C2_UART2_BASE          0xf000a800
-#define STY32C2_UART3_BASE          0xf000b000
-#define STY32C2_UART4_BASE          0xf000b800
-#define STY32C2_UART5_BASE          0xf000c000
-#define STY32C2_UART6_BASE          0xf000c800
-
-#define STY32C2_I2C0_BASE           0xf0002000
-#define STY32C2_I2C1_BASE           0xf0002800
-
-#define STY32C2_SPI0_BASE           0xf0007800
-#define STY32C2_SPI1_BASE           0xf0008000
-#define STY32C2_SPI2_BASE           0xf0008800
-
-#define STY32C2_TIMER0_BASE         0xf0001800
-
-#define STY32C2_LEDS_BASE           0xf0003800
 #define STY32C2_GPIO_BASE           0xf0000800
 
-#define STY32C2_PWM0_BASE           0xf0004000
+#define STY32C2_TIMER0_BASE         0xf0009000
 
-#define STY32C2_SDBLOCK2MEM_BASE    0xf0004800
-#define STY32C2_SDCORE_BASE         0xf0005000
-#define STY32C2_SDIRQ_BASE          0xf0005800
-#define STY32C2_SDMEM2BLOCK_BASE    0xf0006000
-#define STY32C2_SDPHY_BASE          0xf0006800
+#define STY32C2_UART0_BASE          0xf0009800
+#define STY32C2_UART1_BASE          0xf000a000
+#define STY32C2_UART2_BASE          0xf000a800
 
-#define STY32C2_FBDEV_BASE          0xf000d000
-#define STY32C2_VTGDEV_BASE         0xf000d800
+#define STY32C2_I2C0_BASE           0xf0001000
+#define STY32C2_I2C1_BASE           0xf0001800
+
+#define STY32C2_SPI0_BASE           0xf0006800
+#define STY32C2_SPI1_BASE           0xf0007000
+#define STY32C2_SPI2_BASE           0xf0007800
+
+#define STY32C2_LEDS_BASE           0xf0002800
+
+#define STY32C2_PWM0_BASE           0xf0003000
+
+#define STY32C2_SDBLOCK2MEM_BASE    0xf0003800
+#define STY32C2_SDCORE_BASE         0xf0004000
+#define STY32C2_SDIRQ_BASE          0xf0004800
+#define STY32C2_SDMEM2BLOCK_BASE    0xf0005000
+#define STY32C2_SDPHY_BASE          0xf0005800
 
 #endif /* __ARCH_RISCV_SRC_STY32C2_HARDWARE_STY32C2_MEMORYMAP_H */

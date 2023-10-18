@@ -55,10 +55,10 @@ extern "C"
  ****************************************************************************/
 
 /****************************************************************************
- * Name: ulx3s_boardinitialize
+ * Name: sty32c2_boardinitialize
  ****************************************************************************/
 
-void ulx3s_boardinitialize(void);
+void sty32c2_boardinitialize(void);
 
 #undef EXTERN
 #if defined(__cplusplus)
