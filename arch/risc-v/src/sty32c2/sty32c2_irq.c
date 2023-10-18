@@ -40,8 +40,6 @@
  * Public Data
  ****************************************************************************/
 
-//volatile uintptr_t *g_current_regs[CONFIG_SMP_NCPUS];
-
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -59,8 +57,11 @@ void up_irqinitialize(void)
   /* Disable all global interrupts for current hart */
 
   uintptr_t iebase = sty32c2_plic_get_iebase();
-  putreg32(0, iebase);
-
+  putreg32(0x0, iebase + 0);
+  putreg32(0x0, iebase + 4);
+  putreg32(0x0, iebase + 8);
+  putreg32(0x0, iebase + 12);
+ 
   /* Clear pendings in PLIC (for current hart) */
 
   uintptr_t claim_address = sty32c2_plic_get_claimbase();
@@ -99,7 +100,7 @@ void up_irqinitialize(void)
 #ifdef CONFIG_SMP
   /* Clear MSOFT for CPU0 */
 
-  putreg32(0, RISCV_CLINT_MSIP);
+  putreg32(0, RISCV_CLINT_MSIP(0));
 
   up_enable_irq(RISCV_IRQ_MSOFT);
 #endif
