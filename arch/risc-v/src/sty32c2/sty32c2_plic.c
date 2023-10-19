@@ -39,6 +39,18 @@
  * Pre-processor Definitions
  ****************************************************************************/
 
+/* Offset to privilege mode, note that hart0 does not have S-mode */
+
+#ifdef CONFIG_ARCH_USE_S_MODE
+#  define STY32C2_PLIC_IEPRIV_OFFSET        (STY32C2_HART_SIE_OFFSET)
+#  define STY32C2_PLIC_CLAIMPRIV_OFFSET     (STY32C2_PLIC_CLAIM_S_OFFSET)
+#  define STY32C2_PLIC_THRESHOLDPRIV_OFFSET (STY32C2_PLIC_THRESHOLD_S_OFFSET)
+#else
+#  define STY32C2_PLIC_IEPRIV_OFFSET        (0)
+#  define STY32C2_PLIC_CLAIMPRIV_OFFSET     (0)
+#  define STY32C2_PLIC_THRESHOLDPRIV_OFFSET (0)
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -56,9 +68,19 @@
 
 uintptr_t sty32c2_plic_get_iebase(void)
 {
+  uintptr_t iebase;
   uintptr_t hart_id = riscv_mhartid();
-  uintptr_t iebase = STY32C2_PLIC_ENABLE(hart_id, PLIC_MODE_MACHINE);
  
+  if (hart_id == 0)
+    {
+      iebase = STY32C2_PLIC_H0_MIE;
+    }
+  else
+    {
+      iebase = STY32C2_PLIC_H1_MIE + STY32C2_PLIC_IEPRIV_OFFSET +
+        (hart_id - 1) * STY32C2_HART_MIE_OFFSET;
+    }
+
   return iebase;
 }
 
@@ -75,8 +97,18 @@ uintptr_t sty32c2_plic_get_iebase(void)
 
 uintptr_t sty32c2_plic_get_claimbase(void)
 {
+  uintptr_t claim_address;
   uintptr_t hart_id = riscv_mhartid();
-  uintptr_t claim_address = STY32C2_PLIC_CLAIM(hart_id, PLIC_MODE_MACHINE);
+
+  if (hart_id == 0)
+    {
+      claim_address = STY32C2_PLIC_H0_MCLAIM;
+    }
+  else
+    {
+      claim_address = STY32C2_PLIC_H1_MCLAIM + STY32C2_PLIC_CLAIMPRIV_OFFSET +
+        (hart_id - 1) * STY32C2_PLIC_NEXTHART_OFFSET;
+    }
 
   return claim_address;
 }
@@ -94,8 +126,19 @@ uintptr_t sty32c2_plic_get_claimbase(void)
 
 uintptr_t sty32c2_plic_get_thresholdbase(void)
 {
+  uintptr_t threshold_address;
   uintptr_t hart_id = riscv_mhartid();
-  uintptr_t threshold_address = STY32C2_PLIC_THRESHOLD(hart_id, PLIC_MODE_MACHINE);
+
+  if (hart_id == 0)
+    {
+      threshold_address = STY32C2_PLIC_H0_MTHRESHOLD;
+    }
+  else
+    {
+      threshold_address = STY32C2_PLIC_H1_MTHRESHOLD +
+          STY32C2_PLIC_THRESHOLDPRIV_OFFSET +
+          (hart_id - 1) * STY32C2_PLIC_NEXTHART_OFFSET;
+    }
 
   return threshold_address;
 }

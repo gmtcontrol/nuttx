@@ -88,7 +88,7 @@ void __sty32c2_start(void)
 #if defined(CONFIG_SMP) && (CONFIG_SMP_NCPUS > 1)
   if (0 < mhartid)
     {
-      goto cpu1;
+      goto cpux;
     }
 #endif
 
@@ -167,14 +167,12 @@ void __sty32c2_start(void)
 
   nx_start();
 
-#if defined(CONFIG_SMP) && (CONFIG_SMP_NCPUS == 2)
-cpu1:
+#if defined(CONFIG_SMP) && (CONFIG_SMP_NCPUS > 1)
+cpux:
 
-  showprogress('a');
+  showprogress('a' + mhartid);
 
   riscv_cpu_boot(mhartid);
-
-  showprogress('b');
 #endif
 
   while (true)

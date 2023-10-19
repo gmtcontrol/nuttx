@@ -34,7 +34,7 @@
 
 #include "sty32c2.h"
 #include "ulx3s.h"
-#include "ulx3s_sdio.h"
+#include "sty32c2_sdio.h"
 
 #ifdef HAVE_SDMMC
 
@@ -83,7 +83,7 @@ static void ulx3s_sdio_card_isr_callback(void *arg)
 
 bool ulx3s_cardinserted(int slotno)
 {
-  return ulx3s_sdio_get_card_detect();
+  return sty32c2_sdio_get_card_detect();
 }
 
 /****************************************************************************
@@ -115,7 +115,7 @@ int ulx3s_sdio_initialize(void)
       return ret;
     }
 
-  ulx3s_sdio_set_card_isr(sdio_dev, &ulx3s_sdio_card_isr_callback, sdio_dev);
+  sty32c2_sdio_set_card_isr(sdio_dev, &ulx3s_sdio_card_isr_callback, sdio_dev);
 
   finfo("Successfully bound SDIO to the MMC/SD driver\n");
 
@@ -123,7 +123,7 @@ int ulx3s_sdio_initialize(void)
    * The Arty A7 board doesnt have the CD pin wired.
    */
 
-  sdio_mediachange(sdio_dev, ulx3s_sdio_get_card_detect());
+  sdio_mediachange(sdio_dev, sty32c2_sdio_get_card_detect());
 
   return OK;
 }
