@@ -32,7 +32,7 @@
 #include <nuttx/timers/pwm.h>
 #include <arch/board/board.h>
 
-#include "ulx3s_pwm.h"
+#include "sty32c2_pwm.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -47,7 +47,7 @@
  *
  * Description:
  *   Initialise all PWM channels enabled in gateware and map them to
- *   /dev/pwmX. Where X is the PMW channel number. From 0 ... STY32C2_PWM_MAX.
+ *   /dev/pwmX. Where X is the PMW device number.
  *
  * Returned Value:
  *   OK is returned on success.
@@ -58,32 +58,25 @@
 int ulx3s_pwm_setup(void)
 {
   struct pwm_lowerhalf_s *pwm = NULL;
-  int ret = OK;
-  int channel;
-  char devpath[12] =
+  int ret;
+
+  /* Initialize the PWM driver */
+
+  pwm = sty32c2_pwm_initialize(0);
+  if (!pwm)
     {
-        0
-    };
-
-  for (channel = 0; channel < STY32C2_PWM_MAX; channel++)
-    {
-      pwm = ulx3s_pwminitialize(channel);
-      if (!pwm)
-        {
-          pwmerr("Failed fetching PWM channel %d lower half\n", channel);
-          return -ENODEV;
-        }
-
-      /* Register the PWM driver at "/dev/pwmX" */
-
-      snprintf(devpath, 12, "/dev/pwm%d", channel);
-      ret = pwm_register(devpath, pwm);
-      if (ret < 0)
-        {
-          pwmerr("pwm_register channel %d failed: %d\n", channel, ret);
-          return ret;
-        }
+      pwmerr("Failed fetching PWM0 lower half\n");
+      return -ENODEV;
     }
+
+    /* Register the PWM driver at "/dev/pwm0" */
+
+    ret = pwm_register("/dev/pwm0", pwm);
+    if (ret < 0)
+      {
+        pwmerr("pwm_register failed: %d\n", ret);
+        return ret;
+      }
 
   return ret;
 }

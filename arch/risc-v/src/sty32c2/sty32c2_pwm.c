@@ -274,24 +274,12 @@ static int pwm_frequency_update(struct pwm_lowerhalf_s *dev,
 static int pwm_interrupt(int irq, void *context, void *arg)
 {
   struct sty32c2_pwm_dev_s *priv = (struct sty32c2_pwm_dev_s *)arg;
-  uint32_t status;
 
   /* We don't want compilation warnings if no DEBUGASSERT */
 
   UNUSED(priv);
 
-  DEBUGASSERT(priv != NULL);
  
-  /* Retrieve interrupt pending status */
-
-  status = getreg32(STY32C2_PWM_EV_PENDING_REG);
-
-  if (status != 0)
-    {
-      /* Clear the pending bit */
-
-      putreg32(status, STY32C2_PWM_EV_PENDING_REG);
-    }
 
   return OK;
 }
@@ -344,11 +332,7 @@ static int pwm_setup(struct pwm_lowerhalf_s *dev)
 
     if (priv->irq != 0xff) 
       {
-        /* Enable PWM interrpts */
-
-        putreg32(getreg32(STY32C2_PWM_EV_PENDING_REG), \
-                          STY32C2_PWM_EV_PENDING_REG);
-        putreg32(irq_mask, STY32C2_PWM_EV_ENABLE_REG);
+        /* Enable PWM interrupts */
 
         /* Attach the interrupt service */
 
@@ -403,9 +387,7 @@ static int pwm_shutdown(struct pwm_lowerhalf_s *dev)
 
     if (priv->irq != 0xff) 
       {
-        putreg32(0, STY32C2_PWM_EV_ENABLE_REG);
-        putreg32(getreg32(STY32C2_PWM_EV_PENDING_REG), \
-                          STY32C2_PWM_EV_PENDING_REG);
+        /* Disable PWM interrupts */
 
         /* Disable interrupts */
 
@@ -498,9 +480,6 @@ static int pwm_stop(struct pwm_lowerhalf_s *dev)
   pwm_frequency_update(dev, 0);
 
   /* Clear pending event bits */
-
-  putreg32(getreg32(STY32C2_PWM_EV_PENDING_REG), \
-      STY32C2_PWM_EV_PENDING_REG);
 
   /* Disable the pwm and outputs */
 
