@@ -1,0 +1,74 @@
+#
+# For a description of the syntax of this configuration file,
+# see misc/tools/kconfig-language.txt.
+#
+
+if ARCH_BOARD_TI60DEV
+
+
+config STY32C2_SDIO
+	bool "SDIO"
+	default n
+	select SCHED_HPWORK
+	select MMCSD
+	select MMCSD_SDIO
+	select SDIO_BLOCKSETUP
+	select ARCH_HAVE_SDIO
+	select SDIO_DMA
+
+config STY32C2_SDIO1
+	bool "Enable SDIO1"
+	default y if STY32C2_SDIO
+	select STY32C2_SDIO_DMA
+	depends on STY32C2_SDIO
+
+config STY32C2_IDMODE_FREQ
+	int "ID mode frequency"
+	default 400000
+	depends on STY32C2_SDIO
+	---help---
+		Initial, ID mode SD frequency
+
+config STY32C2_MMCXFR_FREQ
+	int "MMC transfer frequency"
+	default 25000000
+	depends on STY32C2_SDIO
+	---help---
+		Frequency to use for transferring data to/from an MMC card
+
+config STY32C2_SD4BIT_FREQ
+	int "SD 4-bit transfer frequency"
+	default 50000000
+	depends on STY32C2_SDIO
+	---help---
+		Frequency to use for transferring data to/from an SD card using all four data lines.
+
+config STY32C2_SDIO_MOUNT
+	bool "Mount SDIO at startup"
+	default n
+	depends on STY32C2_SDIO
+
+config STY32C2_SDIO_MOUNT_BLKDEV
+	string "SDIO block device name"
+	default "/dev/mmcsd0"
+	depends on STY32C2_SDIO
+
+config STY32C2_SDIO_MOUNT_MOUNTPOINT
+	string "SDIO mountpoint"
+	default "/mnt"
+	depends on STY32C2_SDIO
+
+config STY32C2_SDIO_MOUNT_FSTYPE
+	string "SDIO file system type"
+	default "vfat"
+	depends on STY32C2_SDIO
+
+config STY32C2_APPLICATION_RAMDISK
+	bool "Use application ramdisk"
+	depends on BUILD_KERNEL
+	---help---
+		The application ramdisk is currently only intended only to hold 
+		application elfs in the romfs format. These applications must loaded
+		externally into ram through sty32c2_term, or similar method.
+
+endif

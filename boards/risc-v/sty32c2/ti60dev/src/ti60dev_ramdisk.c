@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/sty32c2/sty32c2_clockconfig.c
+ * boards/risc-v/sty32c2/ti60dev/src/ti60dev_ramdisk.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -24,18 +24,35 @@
 
 #include <nuttx/config.h>
 
-#include <stdint.h>
-#include <assert.h>
-#include <debug.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <syslog.h>
+#include <errno.h>
 
-#include <nuttx/arch.h>
-#include <arch/board/board.h>
+#include <nuttx/board.h>
 
-#include "riscv_internal.h"
-#include "sty32c2_clockconfig.h"
+#include <arch/board/board_memorymap.h>
+#include <nuttx/drivers/ramdisk.h>
+#include <sys/boardctl.h>
+#include <sys/mount.h>
+
+#include "sty32c2.h"
+#include "ti60dev.h"
 
 /****************************************************************************
  * Pre-processor Definitions
+ ****************************************************************************/
+
+#ifndef CONFIG_BUILD_KERNEL
+#error "Ramdisk usage is intended to be used with kernel build only"
+#endif
+
+#define SECTORSIZE   512
+#define NSECTORS(b)  (((b) + SECTORSIZE - 1) / SECTORSIZE)
+#define RAMDISK_DEVICE_MINOR 0
+
+/****************************************************************************
+ * Private Types
  ****************************************************************************/
 
 /****************************************************************************
@@ -43,38 +60,39 @@
  ****************************************************************************/
 
 /****************************************************************************
- * Name: sty32c2_get_cpuclk
+ * Name: ti60dev_mount_ramdisk
+ *
+ * Description:
+ *  Mount a ramdisk defined in the ld-kernel.script to /dev/ramX.
+ *  The ramdisk is intended to contain a romfs with applications which can
+ *  be spawned at runtime.
+ *
+ * Returned Value:
+ *   OK is returned on success.
+ *   -ERRORNO is returned on failure.
+ *
  ****************************************************************************/
 
-uint32_t sty32c2_get_cpuclk(void)
+int ti60dev_mount_ramdisk(void)
 {
-  /* fpga fabric default sys frequency */
-#if defined(CONFIG_ARCH_BOARD_T20F256DK)
-  return 50000000UL;
-#elif defined(CONFIG_ARCH_BOARD_TI60DEV)
-  return 200000000UL;
-#elif defined(CONFIG_ARCH_BOARD_ULX3S)
-  return 50000000UL;
-#else
-  return 100000000UL;
-#endif
-}
+  int ret;
+  struct boardioc_romdisk_s desc;
 
-/****************************************************************************
- * Name: sty32c2_get_spiclk
- ****************************************************************************/
+  desc.minor    = RAMDISK_DEVICE_MINOR;
+  desc.nsectors = NSECTORS((ssize_t)__ramdisk_size);
+  desc.sectsize = SECTORSIZE;
+  desc.image    = __ramdisk_start;
 
-uint32_t sty32c2_get_spiclk(void)
-{
-  /* fpga fabric default spi frequency */
-  return 25000000UL;
-}
+  ret = boardctl(BOARDIOC_ROMDISK, (uintptr_t)&desc);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "Ramdisk register failed: %s\n", strerror(errno));
+      syslog(LOG_ERR, "Ramdisk mountpoint /dev/ram%d\n",
+                                          RAMDISK_DEVICE_MINOR);
+      syslog(LOG_ERR, "Ramdisk length %u, origin %x\n",
+                                          (ssize_t)__ramdisk_size,
+                                          (uintptr_t)__ramdisk_start);
+    }
 
-/****************************************************************************
- * Name: sty32c2_clockconfig
- ****************************************************************************/
-
-void sty32c2_clockconfig(void)
-{
-  /* pll is set by fpga fabric */
+  return ret;
 }

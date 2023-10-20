@@ -55,7 +55,14 @@ config ARCH_BOARD_ULX3S
 	depends on ARCH_CHIP_STY32C2
 	---help---
 		This is the board configuration for the port of NuttX to the Radiona ULX3S
-		board. This board features the RISC-V litex vexriscv softcore
+		board. This board features the RISC-V litex vexriscv smp softcore
+
+config ARCH_BOARD_TI60DEV
+	bool "Efinix Titanium Ti60 F225 Devkit"
+	depends on ARCH_CHIP_STY32C2
+	---help---
+		This is the board configuration for the port of NuttX to the Efinix Titanium Ti60 F225 
+		development board. This board features the RISC-V litex vexriscv smp softcore
 		
 config ARCH_BOARD_AVR32DEV1
 	bool "Atmel AVR32DEV1 board"
@@ -2865,6 +2872,7 @@ config ARCH_BOARD
 	default "arduino-m0"                if ARCH_BOARD_ARDUINO_M0
 	default "arty_a7"                   if ARCH_BOARD_ARTY_A7
 	default "ulx3s"                   	if ARCH_BOARD_ULX3S
+	default "ti60dev"                   if ARCH_BOARD_TI60DEV
 	default "avr32dev1"                 if ARCH_BOARD_AVR32DEV1
 	default "axoloti"                   if ARCH_BOARD_AXOLOTI
 	default "bambino-200e"              if ARCH_BOARD_BAMBINO_200E
@@ -3867,6 +3875,9 @@ source "boards/risc-v/litex/arty_a7/Kconfig"
 endif
 if ARCH_BOARD_ULX3S
 source "boards/risc-v/sty32c2/ulx3s/Kconfig"
+endif
+if ARCH_BOARD_TI60DEV
+source "boards/risc-v/sty32c2/ti60dev/Kconfig"
 endif
 if ARCH_BOARD_HIFIVE_REVB
 source "boards/risc-v/fe310/hifive1-revb/Kconfig"

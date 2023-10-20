@@ -1,0 +1,115 @@
+/****************************************************************************
+ * boards/risc-v/sty32c2/ti60dev/src/ti60dev_bringup.c
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.  The
+ * ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ ****************************************************************************/
+
+/****************************************************************************
+ * Included Files
+ ****************************************************************************/
+
+#include <nuttx/config.h>
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <debug.h>
+#include <errno.h>
+
+#include <nuttx/board.h>
+#include <nuttx/fs/fs.h>
+
+#include "sty32c2.h"
+#include "ti60dev.h"
+
+/****************************************************************************
+ * Public Functions
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: ti60dev_bringup
+ ****************************************************************************/
+
+int ti60dev_bringup(void)
+{
+  int ret = OK;
+
+#ifdef CONFIG_FS_PROCFS
+  /* Mount the procfs file system */
+
+  ret = nx_mount(NULL, STY32C2_PROCFS_MOUNTPOINT, "procfs", 0, NULL);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "failed to mount procfs at %s %d\n",
+              STY32C2_PROCFS_MOUNTPOINT, ret);
+    }
+#endif
+
+#ifdef CONFIG_FS_AUTOMOUNTER
+  /* Configure uSD automounter */
+
+  ret = ti60dev_automount_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: ti60dev_automount_initialize() failed: %d\n",
+              ret);
+    }
+#endif
+
+#ifdef CONFIG_STY32C2_SDIO
+  /* Initialize the SDIO block driver */
+
+  ret = ti60dev_sdio_initialize();
+  if (ret != OK)
+    {
+      syslog(LOG_ERR, "ti60dev_sdio_initialize() failed %d\n", ret);
+      return ret;
+    }
+
+  /* If automount not configured, force a mount point.
+   * Assumes the card is always present.
+   */
+
+#ifndef CONFIG_FS_AUTOMOUNTER
+#ifdef CONFIG_STY32C2_SDIO_MOUNT
+  /* Mount the volume on SDMMC0 */
+
+  ret = nx_mount(CONFIG_STY32C2_SDIO_MOUNT_BLKDEV,
+                 CONFIG_STY32C2_SDIO_MOUNT_MOUNTPOINT,
+                 CONFIG_STY32C2_SDIO_MOUNT_FSTYPE,
+                 0, NULL);
+
+  if (ret != OK)
+    {
+      syslog(LOG_ERR, "ERROR: Failed to mount %s: %d\n",
+              CONFIG_STY32C2_SDIO_MOUNT_MOUNTPOINT, ret);
+    }
+#endif /* CONFIG_STY32C2_SDIO_MOUNT */
+#endif
+
+#endif /* CONFIG_STY32C2_SDIO */
+
+#ifdef CONFIG_STY32C2_PWM
+  ret = ti60dev_pwm_setup();
+  if (ret != OK)
+    {
+      syslog(LOG_ERR, "ERROR: Failed to setup PWM driver \n");
+    }
+
+#endif /* CONFIG_STY32C2_PWM */
+
+  return ret;
+}

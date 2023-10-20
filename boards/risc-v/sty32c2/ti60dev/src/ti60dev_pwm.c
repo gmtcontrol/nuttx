@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/sty32c2/sty32c2_clockconfig.c
+ * boards/risc-v/sty32c2/ti60dev/src/ti60dev_pwm.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -24,15 +24,15 @@
 
 #include <nuttx/config.h>
 
-#include <stdint.h>
-#include <assert.h>
+#include <errno.h>
 #include <debug.h>
+#include <stddef.h>
+#include <stdio.h>
 
-#include <nuttx/arch.h>
+#include <nuttx/timers/pwm.h>
 #include <arch/board/board.h>
 
-#include "riscv_internal.h"
-#include "sty32c2_clockconfig.h"
+#include "sty32c2_pwm.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -43,38 +43,40 @@
  ****************************************************************************/
 
 /****************************************************************************
- * Name: sty32c2_get_cpuclk
+ * Name: ti60dev_pwm_setup
+ *
+ * Description:
+ *   Initialise all PWM channels enabled in gateware and map them to
+ *   /dev/pwmX. Where X is the PMW device number.
+ *
+ * Returned Value:
+ *   OK is returned on success.
+ *   -ENODEV is return on the first PWM device initialise failure.
+ *
  ****************************************************************************/
 
-uint32_t sty32c2_get_cpuclk(void)
+int ti60dev_pwm_setup(void)
 {
-  /* fpga fabric default sys frequency */
-#if defined(CONFIG_ARCH_BOARD_T20F256DK)
-  return 50000000UL;
-#elif defined(CONFIG_ARCH_BOARD_TI60DEV)
-  return 200000000UL;
-#elif defined(CONFIG_ARCH_BOARD_ULX3S)
-  return 50000000UL;
-#else
-  return 100000000UL;
-#endif
-}
+  struct pwm_lowerhalf_s *pwm = NULL;
+  int ret;
 
-/****************************************************************************
- * Name: sty32c2_get_spiclk
- ****************************************************************************/
+  /* Initialize the PWM driver */
 
-uint32_t sty32c2_get_spiclk(void)
-{
-  /* fpga fabric default spi frequency */
-  return 25000000UL;
-}
+  pwm = sty32c2_pwm_initialize(0);
+  if (!pwm)
+    {
+      pwmerr("Failed fetching PWM0 lower half\n");
+      return -ENODEV;
+    }
 
-/****************************************************************************
- * Name: sty32c2_clockconfig
- ****************************************************************************/
+    /* Register the PWM driver at "/dev/pwm0" */
 
-void sty32c2_clockconfig(void)
-{
-  /* pll is set by fpga fabric */
+    ret = pwm_register("/dev/pwm0", pwm);
+    if (ret < 0)
+      {
+        pwmerr("pwm_register failed: %d\n", ret);
+        return ret;
+      }
+
+  return ret;
 }

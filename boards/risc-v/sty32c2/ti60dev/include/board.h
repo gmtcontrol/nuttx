@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/sty32c2/sty32c2_clockconfig.c
+ * boards/risc-v/sty32c2/ti60dev/include/board.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,63 +18,51 @@
  *
  ****************************************************************************/
 
+#ifndef __BOARDS_RISCV_STY32C2_TI60DEV_INCLUDE_BOARD_H
+#define __BOARDS_RISCV_STY32C2_TI60DEV_INCLUDE_BOARD_H
+
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
 
-#include <stdint.h>
-#include <assert.h>
-#include <debug.h>
-
-#include <nuttx/arch.h>
-#include <arch/board/board.h>
-
-#include "riscv_internal.h"
-#include "sty32c2_clockconfig.h"
-
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
 
 /****************************************************************************
- * Public Functions
+ * Public Types
  ****************************************************************************/
+
+#ifndef __ASSEMBLY__
 
 /****************************************************************************
- * Name: sty32c2_get_cpuclk
+ * Public Data
  ****************************************************************************/
 
-uint32_t sty32c2_get_cpuclk(void)
+#undef EXTERN
+#if defined(__cplusplus)
+#define EXTERN extern "C"
+extern "C"
 {
-  /* fpga fabric default sys frequency */
-#if defined(CONFIG_ARCH_BOARD_T20F256DK)
-  return 50000000UL;
-#elif defined(CONFIG_ARCH_BOARD_TI60DEV)
-  return 200000000UL;
-#elif defined(CONFIG_ARCH_BOARD_ULX3S)
-  return 50000000UL;
 #else
-  return 100000000UL;
+#define EXTERN extern
 #endif
-}
 
 /****************************************************************************
- * Name: sty32c2_get_spiclk
+ * Public Function Prototypes
  ****************************************************************************/
-
-uint32_t sty32c2_get_spiclk(void)
-{
-  /* fpga fabric default spi frequency */
-  return 25000000UL;
-}
 
 /****************************************************************************
- * Name: sty32c2_clockconfig
+ * Name: sty32c2_boardinitialize
  ****************************************************************************/
 
-void sty32c2_clockconfig(void)
-{
-  /* pll is set by fpga fabric */
+void sty32c2_boardinitialize(void);
+
+#undef EXTERN
+#if defined(__cplusplus)
 }
+#endif
+#endif /* __ASSEMBLY__ */
+#endif /* __BOARDS_RISCV_STY32C2_TI60DEV_INCLUDE_BOARD_H */

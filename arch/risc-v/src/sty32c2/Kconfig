@@ -21,6 +21,8 @@ config STY32C2_UART0
 	select ARCH_HAVE_SERIAL_TERMIOS
 	select STY32C2_UART
 
+if ARCH_BOARD_ULX3S
+
 config STY32C2_UART1
 	bool "UART1"
 	default n
@@ -125,6 +127,8 @@ config STY32C2_RTC
 	bool "RTC"
 	default n
 	select RTC
+
+endif
 
 config STY32C2_SDIO
 	bool "SDIO"

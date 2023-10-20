@@ -37,6 +37,8 @@
 
 /* Map RISC-V exception code to NuttX IRQ */
 
+#if defined(CONFIG_ARCH_BOARD_ULX3S)
+
 #define STY32C2_IRQ_UART0    (RISCV_IRQ_EXT + 1)
 #define STY32C2_IRQ_TIMER0   (RISCV_IRQ_EXT + 2)
 #define STY32C2_IRQ_UART1    (RISCV_IRQ_EXT + 3)
@@ -47,6 +49,20 @@
 
 #define STY32C2_IRQ_LAST     (STY32C2_IRQ_SDCARD)
 
+#elif defined(CONFIG_ARCH_BOARD_TI60DEV)
+
+#define STY32C2_IRQ_UART0    (RISCV_IRQ_EXT + 1)
+#define STY32C2_IRQ_TIMER0   (RISCV_IRQ_EXT + 2)
+#define STY32C2_IRQ_SDCARD   (RISCV_IRQ_EXT + 3)
+
+/* The last hardware IRQ number */
+
+#define STY32C2_IRQ_LAST     (STY32C2_IRQ_SDCARD)
+
+#else
+#error "Invalid board definition!"
+#endif
+
 /* Second level GPIO interrupts.  GPIO interrupts are decoded and dispatched
  * as a second level of decoding:  The first level dispatches to the GPIO
  * interrupt handler.  The second to the decoded GPIO interrupt handler.
@@ -55,7 +71,7 @@
 #ifdef CONFIG_STY32C2_GPIO_IRQ
 #  define STY32C2_NIRQ_GPIO           32
 #  define STY32C2_FIRST_GPIOIRQ       (STY32C2_IRQ_LAST + 1)
-#  define STY32C2_LAST_GPIOIRQ        (LITES_FIRST_GPIOIRQ + STY32C2_NIRQ_GPIO)
+#  define STY32C2_LAST_GPIOIRQ        (STY32C2_FIRST_GPIOIRQ + STY32C2_NIRQ_GPIO)
 #else
 #  define STY32C2_NIRQ_GPIO           0
 #endif
