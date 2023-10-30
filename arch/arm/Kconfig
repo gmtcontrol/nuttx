@@ -560,6 +560,24 @@ config ARCH_CHIP_STM32WL5
 	---help---
 		STMicro STM32WL5 architectures (dual CPU ARM Cortex-M4 Cortex-M0).
 
+config ARCH_CHIP_RA6M5
+	bool "Renesas RA6M5"
+	select ARCH_CORTEXM33
+	select ARCH_HAVE_MPU
+	select ARCH_HAVE_FETCHADD
+	select ARCH_HAVE_HEAPCHECK
+	select ARCH_HAVE_PROGMEM
+	select ARCH_HAVE_SPI_BITORDER
+	select ARCH_HAVE_TICKLESS
+	select ARCH_HAVE_TRUSTZONE
+	select ARMV8M_SYSTICK
+	select ARMV8M_TRUSTZONE_HYBRID
+	select ARMV8M_HAVE_STACKCHECK
+	select ARM_HAVE_DSP
+	select ARM_HAVE_MPU_UNIFIED
+	---help---
+		Renesas RA6M5 architectures (ARM Cortex-M33).
+		
 config ARCH_CHIP_STR71X
 	bool "STMicro STR71x"
 	select ARCH_ARM7TDMI
@@ -1072,6 +1090,7 @@ config ARCH_CHIP
 	default "stm32u5"	if ARCH_CHIP_STM32U5
 	default "stm32wb"	if ARCH_CHIP_STM32WB
 	default "stm32wl5"	if ARCH_CHIP_STM32WL5
+	default "ra6m5"		if ARCH_CHIP_RA6M5
 	default "str71x"	if ARCH_CHIP_STR71X
 	default "tms570"	if ARCH_CHIP_TMS570
 	default "xmc4"		if ARCH_CHIP_XMC4
@@ -1532,6 +1551,9 @@ source "arch/arm/src/stm32wb/Kconfig"
 endif
 if ARCH_CHIP_STM32WL5
 source "arch/arm/src/stm32wl5/Kconfig"
+endif
+if ARCH_CHIP_RA6M5
+source "arch/arm/src/ra6m5/Kconfig"
 endif
 if ARCH_CHIP_STR71X
 source "arch/arm/src/str71x/Kconfig"

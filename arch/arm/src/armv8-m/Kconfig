@@ -156,7 +156,6 @@ config ARMV8M_SYSTICK
 config ARMV8M_TRUSTZONE_HYBRID
 	bool "Hybrid with secure and non-secure."
 	default n
-	depends on SMP
 	---help---
 		Enable the hybrid with secure and non-secure domain.
 		In SMP mode, you can enable this configuration when one

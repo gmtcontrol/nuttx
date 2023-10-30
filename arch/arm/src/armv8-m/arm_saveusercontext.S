@@ -81,7 +81,7 @@ up_saveusercontext:
 	/* Save r13, primask, r4~r11 */
 
 	mov		r2, sp
-#ifdef CONFIG_ARMV7M_USEBASEPRI
+#ifdef CONFIG_ARMV8M_USEBASEPRI
 	mrs		r3, basepri
 #else
 	mrs		r3, primask

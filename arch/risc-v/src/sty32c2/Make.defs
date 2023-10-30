@@ -1,0 +1,87 @@
+############################################################################
+# arch/risc-v/src/sty32c2/Make.defs
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.  The
+# ASF licenses this file to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance with the
+# License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+############################################################################
+
+include common/Make.defs
+
+# Specify our HEAD assembly file.  This will be linked as
+# the first object file, so it will appear at address 0
+
+ifeq ($(CONFIG_ARCH_USE_S_MODE),y)
+HEAD_ASRC += sty32c2_shead.S
+else
+ifeq ($(CONFIG_SMP),y)
+HEAD_ASRC = sty32c2_head_smp.S
+else
+HEAD_ASRC = sty32c2_head.S
+endif
+endif
+
+# Specify our C code within this directory to be included
+CHIP_CSRCS  = sty32c2_allocateheap.c sty32c2_clockconfig.c sty32c2_idle.c
+CHIP_CSRCS += sty32c2_irq.c sty32c2_irq_dispatch.c
+CHIP_CSRCS += sty32c2_lowputc.c sty32c2_serial.c
+CHIP_CSRCS += sty32c2_start.c sty32c2_timerisr.c
+CHIP_CSRCS += sty32c2_plic.c sty32c2_systemreset.c
+CHIP_ASRCS += sty32c2_cache.S
+
+ifeq ($(CONFIG_BUILD_PROTECTED),y)
+CHIP_CSRCS += sty32c2_userspace.c
+endif
+
+ifeq ($(CONFIG_BUILD_KERNEL),y)
+CHIP_CSRCS += sty32c2_mm_init.c
+endif
+
+ifeq ($(CONFIG_MM_PGALLOC),y)
+CHIP_CSRCS += sty32c2_pgalloc.c
+endif
+
+ifeq ($(CONFIG_STY32C2_I2C),y)
+ifeq ($(CONFIG_I2C_BITBANG),y)
+CHIP_CSRCS += sty32c2_i2c_bitbang.c
+endif
+endif
+
+ifeq ($(CONFIG_STY32C2_SPI),y)
+CHIP_CSRCS += sty32c2_spi.c
+endif
+
+ifeq ($(CONFIG_STY32C2_PWM),y)
+CHIP_CSRCS += sty32c2_pwm.c
+endif
+
+ifeq ($(CONFIG_STY32C2_RTC),y)
+CHIP_CSRCS += sty32c2_rtc.c
+ifeq ($(CONFIG_RTC_DRIVER),y)
+CHIP_CSRCS += sty32c2_rtc_lowerhalf.c
+endif
+endif
+
+ifeq ($(CONFIG_STY32C2_SDIO),y)
+CHIP_CSRCS += sty32c2_sdio.c
+endif
+
+ifeq ($(CONFIG_STY32C2_ETHMAC),y)
+CHIP_CSRCS += sty32c2_emac.c
+endif
+
+ifeq ($(CONFIG_VIDEO_FB),y)
+CHIP_CSRCS += sty32c2_framebuffer.c
+endif
