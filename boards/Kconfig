@@ -2343,6 +2343,16 @@ config ARCH_BOARD_STM3240G_EVAL
 		microcontroller (ARM Cortex-M4 with FPU).  This port uses a GNU Cortex-M4
 		toolchain (such as CodeSourcery).
 
+config ARCH_BOARD_GLCX96
+  bool "GMT GLCX96 series PLC"
+  depends on ARCH_CHIP_STM32F407VG
+  select ARCH_HAVE_LEDS
+  select ARCH_HAVE_BUTTONS
+  select ARCH_HAVE_IRQBUTTONS
+  ---help---
+    GMT GLCX96 series PLC based on the STMicro STM32F407VGT6
+    microcontroller (ARM Cortex-M4 with FPU).
+    
 config ARCH_BOARD_STM32L0538_DISCO
 	bool "STMicro STM32L0538-Disco board"
 	depends on ARCH_CHIP_STM32L053C8
@@ -3247,6 +3257,7 @@ config ARCH_BOARD
 	default "stm3210e-eval"             if ARCH_BOARD_STM3210E_EVAL
 	default "stm3220g-eval"             if ARCH_BOARD_STM3220G_EVAL
 	default "stm3240g-eval"             if ARCH_BOARD_STM3240G_EVAL
+	default "glcx96"                    if ARCH_BOARD_GLCX96
 	default "stm32f3discovery"          if ARCH_BOARD_STM32F3_DISCOVERY
 	default "stm32f334-disco"           if ARCH_BOARD_STM32F334_DISCO
 	default "stm32f4discovery"          if ARCH_BOARD_STM32F4_DISCOVERY
@@ -3897,6 +3908,9 @@ source "boards/arm/stm32/stm3220g-eval/Kconfig"
 endif
 if ARCH_BOARD_STM3240G_EVAL
 source "boards/arm/stm32/stm3240g-eval/Kconfig"
+endif
+if ARCH_BOARD_GLCX96
+source "boards/arm/stm32/glcx96/Kconfig"
 endif
 if ARCH_BOARD_STM32_TINY
 source "boards/arm/stm32/stm32_tiny/Kconfig"
