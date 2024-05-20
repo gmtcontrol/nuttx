@@ -43,6 +43,14 @@ else
     else
       LDSCRIPT = ld-ihc.script
     endif
+  else ifeq ($(CONFIG_ICICLE_MPFS_EXEC_HART1),y)
+      LDSCRIPT = ld-hart1.script
+  else ifeq ($(CONFIG_ICICLE_MPFS_EXEC_HART2),y)
+      LDSCRIPT = ld-hart2.script
+  else ifeq ($(CONFIG_ICICLE_MPFS_EXEC_HART3),y)
+      LDSCRIPT = ld-hart3.script
+  else ifeq ($(CONFIG_ICICLE_MPFS_EXEC_HART4),y)
+      LDSCRIPT = ld-hart4.script
   else
     LDSCRIPT = ld.script
   endif

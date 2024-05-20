@@ -265,7 +265,7 @@
 
 /* eMMC / SD switch address */
 
-#define SDIO_REGISTER_ADDRESS                           0x4f000000
+#define SDIO_REGISTER_ADDRESS                           0x40000200
 
 #define MPFS_SYSREG_IOMUX1   (MPFS_SYSREG_BASE + \
                               MPFS_SYSREG_IOMUX1_CR_OFFSET)

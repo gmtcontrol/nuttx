@@ -5,4 +5,20 @@
 
 if ARCH_BOARD_ICICLE_MPFS
 
+config ICICLE_MPFS_EXEC_HART1
+	bool "Enable code execution on HART1"
+	default n
+
+config ICICLE_MPFS_EXEC_HART2
+  bool "Enable code execution on HART2"
+  default n
+  
+config ICICLE_MPFS_EXEC_HART3
+  bool "Enable code execution on HART3"
+  default n
+  
+config ICICLE_MPFS_EXEC_HART4
+  bool "Enable code execution on HART4"
+  default n
+  
 endif
